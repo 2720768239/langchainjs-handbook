@@ -1,0 +1,71 @@
+:root {
+  --vp-c-brand-1: #1c7ed6;
+  --vp-c-brand-2: #339af0;
+  --vp-c-brand-3: #4dabf7;
+  --vp-c-brand-soft: rgba(51, 154, 240, 0.14);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #1c7ed6 30%, #22b8cf);
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    rgba(28, 126, 214, 0.35) 50%,
+    rgba(34, 184, 207, 0.35) 50%
+  );
+  --vp-home-hero-image-filter: blur(56px);
+}
+
+.dark {
+  --vp-c-brand-1: #4dabf7;
+  --vp-c-brand-2: #339af0;
+  --vp-c-brand-3: #1c7ed6;
+}
+
+/* 章节图片统一样式 */
+.vp-doc img {
+  border-radius: 8px;
+}
+
+/* 训练场：全屏工作台，去掉文档页的页脚与内容宽度限制 */
+.playground-page {
+  --vp-layout-max-width: 100%;
+}
+.playground-page .VPContent {
+  padding-top: var(--vp-nav-height) !important;
+}
+.playground-page .VPFooter,
+.playground-page .VPLocalNav,
+.playground-page .aside {
+  display: none !important;
+}
+.playground-page .VPDoc .container,
+.playground-page .VPDoc .content,
+.playground-page .VPDoc .content-container {
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* 首页 YAML 下方的自定义区块，去掉默认文档排版 */
+.VPHome .vp-doc.container {
+  max-width: 100%;
+  padding: 0;
+}
+.VPHome .vp-doc.container > * {
+  max-width: none;
+}
+
+.VPHero .name {
+  font-weight: 800;
+}
+
+.VPHome {
+  overflow-x: clip;
+}
+
+.VPHome .VPHero {
+  padding-bottom: 28px;
+}
+
+.VPHome .VPFeatures {
+  padding-top: 12px;
+}
