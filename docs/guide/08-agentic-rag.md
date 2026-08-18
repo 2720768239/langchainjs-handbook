@@ -129,7 +129,7 @@ const agent = createAgent({ model, tools: [retrievalTool] });
 
 ## 完整 Agentic RAG 系统组装
 
-从零到可用只需四步：建知识库 → 建向量存储 → 包装检索工具 → 创建 Agent。
+从零到可用只需四步：建知识库 → 建向量存储 → 包装检索工具 → 创建 Agent。下面把上一节的检索工具一并写进可运行示例：
 
 ```ts
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
@@ -168,8 +168,31 @@ const docs = [
 ];
 const vectorStore = await MemoryVectorStore.fromDocuments(docs, embeddings);
 
-// 3. 检索工具（见上一节） + 4. Agent
-const agent = createAgent({ model, tools: [retrievalTool] });
+const retrievalTool = tool(
+  async (input) => {
+    const results = await vectorStore.similaritySearch(input.query, 2);
+    return results
+      .map((doc) => `[${doc.metadata.source}]: ${doc.pageContent}`)
+      .join("\n\n") || "No relevant documents found.";
+  },
+  {
+    name: "searchCompanyDocs",
+    description:
+      "Search company documents for specific information about our company history, " +
+      "office locations, financials, policies, etc. Use this when you need factual " +
+      "information about our company that isn't general knowledge.",
+    schema: z.object({
+      query: z.string().describe("The search query to find relevant company documents"),
+    }),
+  },
+);
+
+const agent = createAgent({
+  model,
+  tools: [retrievalTool],
+  systemPrompt:
+    "You are a company assistant. Use searchCompanyDocs for internal facts; answer general knowledge directly.",
+});
 
 // 用混合问题验证 Agent 的决策
 const questions = [
@@ -215,7 +238,7 @@ const thresholdRetriever = vectorStore.asRetriever({
 });
 ```
 
-更进一步还有多查询 RAG（生成多个搜索词）、上下文压缩、混合搜索（语义 + 关键词）等模式。
+更进一步还有多查询 RAG（生成多个搜索词）、上下文压缩、混合搜索（语义 + 关键词）、以及用独立模型做 **rerank（重排序）**。入门用 `similaritySearch` 即可；相关性不够时再换 MMR 或接 [检索器集成](https://docs.langchain.com/oss/javascript/integrations/retrievers)。官方端到端流程见 [RAG](https://docs.langchain.com/oss/javascript/langchain/rag)。
 :::
 
 ## 引用来源（Citation）模式
@@ -230,7 +253,7 @@ const searchWithCitations = tool(
     // 把每条结果格式化为 [编号] + 内容 + 出处
     return results
       .map(([doc, score], index) => {
-        const relevancePercent = Math.round((1 - score) * 100);
+        const relevancePercent = Math.round(score * 100); // MemoryVectorStore：分数越高越相似
         return `[${index + 1}] ${doc.pageContent}
 Source: ${doc.metadata.title} - ${doc.metadata.section} (Page ${doc.metadata.page})
 Author: ${doc.metadata.author}
@@ -250,6 +273,10 @@ Relevance: ${relevancePercent}%`;
 ```
 
 Agent 回答时就会自然带上 `[1]`、`[2]` 这样的引用标记，用户可以追溯每个论断的来源——这是提示工程方案给不了的能力。
+
+::: warning 分数方向因存储而异
+`MemoryVectorStore` 的 score 是**相似度**（越高越相关），所以上面用 `score * 100`。部分生产库（L2 / 某些 pgvector 配置）返回的是**距离**（越低越相关）。换存储时先打印几个样本，不要盲目套 `1 - score`。
+:::
 
 ## 多知识源模式
 
@@ -310,6 +337,7 @@ const agent = createAgent({
 | 工具描述含糊 | `description: "Search docs"` 这种描述让 Agent 无从决策，会导致该搜不搜、不该搜乱搜——写明数据范围和使用时机 |
 | 明明该用提示工程却上了 RAG | 几条 FAQ 就建向量库属于过度设计，先过一遍决策树 |
 | 检索结果不带来源 | 返回裸文本就丢失了引用能力，始终在工具输出中拼上 `[metadata.source]` |
+| 把距离当相似度 | 有的向量库 score 越高越好，有的越低越好；换存储先核对，再决定要不要 `1 - score` |
 | 误判 Agent 是否检索了 | 别猜，检查 `response.messages` 中是否存在 `tool_calls` |
 | 检索到空结果时 Agent 胡编 | 工具要显式返回 "No relevant documents found."，让 Agent 知道知识库里没有 |
 | 系统提示与工具描述打架 | 如果 system prompt 说「只用自身知识回答」，Agent 可能永远不调检索工具——两处指令要一致 |
@@ -318,6 +346,7 @@ const agent = createAgent({
 ## ✅ 核心要点
 
 - **Agentic RAG = Agent + 检索工具**：把 `similaritySearch()` 用 `tool()` 包起来，交给 `createAgent()`，Agent 自己决定何时搜
+- **`systemPrompt` 与工具 `description` 要一致**：一边说「先查公司文档」、一边说「只用自身知识」，Agent 会无所适从
 - **效率来自决策**：只在必要时检索，简单问题省下 Embedding 和搜索的时间与成本
 - **`description` 决定成败**：它是 Agent 判断「该不该调用检索」的唯一依据
 - **来源归属是刚需**：metadata 一路带到工具输出，就能实现带 `[1]` `[2]` 引用的可追溯回答
@@ -330,6 +359,7 @@ const agent = createAgent({
 
 ## 📚 延伸阅读
 
-- [LangChain.js RAG 教程](https://js.langchain.com/docs/tutorials/rag)
-- [LangChain.js 检索策略](https://js.langchain.com/docs/modules/data_connection/retrievers/)
-- [LangGraph：有状态 Agent 编排框架](https://docs.langchain.com/oss/javascript/langgraph/quickstart)
+- [LangChain.js RAG](https://docs.langchain.com/oss/javascript/langchain/rag)
+- [检索器集成](https://docs.langchain.com/oss/javascript/integrations/retrievers)
+- [LangGraph：有状态 Agent 编排](https://docs.langchain.com/oss/javascript/langgraph/quickstart)
+- [Deep Agents 概览](https://docs.langchain.com/oss/javascript/deepagents/overview)

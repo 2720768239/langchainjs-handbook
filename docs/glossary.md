@@ -21,10 +21,10 @@
 | 温度（Temperature） | 控制输出随机性的参数：0 最确定（代码、事实），越高越有创造性也越容易跑题 | [02. Chat 模型](/guide/02-chat-models) |
 | 最大 Token 数（Max Tokens） | 限制单次回复长度上限的参数，用于控制成本和篇幅 | [02. Chat 模型](/guide/02-chat-models) |
 | 流式输出（Streaming） | 边生成边逐字返回回复，而非等全部生成完，显著改善用户体验 | [02. Chat 模型](/guide/02-chat-models) |
-| 记忆（Memory） | AI 跨轮次记住上下文的能力——本质是每次请求都把对话历史一并发送 | [02. Chat 模型](/guide/02-chat-models) |
+| 记忆（Memory） | AI 跨轮次记住上下文的能力。手写聊天靠 messages 数组；Agent 场景用 `checkpointer` + `thread_id` 自动持久化 | [02. Chat 模型](/guide/02-chat-models)、[05. Agent 入门](/guide/05-agents) |
 | 速率限制（Rate Limit） | 提供商对单位时间请求量的限制，超限返回 429；用 `withRetry()` 自动重试应对 | [02. Chat 模型](/guide/02-chat-models) |
 | 链（Chain） | 按固定路径串联的一系列操作，上一步输出是下一步输入（对比 Agent 的动态决策） | [08. Agentic RAG](/guide/08-agentic-rag) |
-| LCEL（LangChain Expression Language） | 用管道符组合链的语法，如 `prompt.pipe(model).pipe(parser)` | [03. 提示词与输出](/guide/03-prompts) |
+| LCEL（LangChain Expression Language） | 用管道组合链的语法，如 `prompt.pipe(model)`；现代 Agent 应用更多用 `createAgent()` 而不是手写长链 | [03. 提示词与输出](/guide/03-prompts) |
 | 知识截止（Knowledge Cutoff） | 模型训练数据的时间边界，之后发生的事它一概不知——RAG 和工具正是为此而生 | [08. Agentic RAG](/guide/08-agentic-rag) |
 
 ## 消息与提示词
@@ -40,7 +40,7 @@
 | AI 消息（AIMessage） | 代表模型回复的消息类型，通常在生成后自动追加进对话历史 | [01. 初识 LangChain.js](/guide/01-introduction) |
 | 工具消息（ToolMessage） | 承载工具执行结果的消息类型，让 Agent 知道工具返回了什么 | [05. Agent 入门](/guide/05-agents) |
 | 少样本提示（Few-Shot Prompting） | 在提示词中给出 2~5 个输入-输出示例来「教会」模型模式，比零样本更可靠、比微调更便宜 | [03. 提示词与输出](/guide/03-prompts) |
-| 输出解析器（Output Parser） | 把模型的原始文本输出转换为 JSON、列表等结构化数据的组件 | [03. 提示词与输出](/guide/03-prompts) |
+| 输出解析器（Output Parser） | 早期把模型自由文本解析成 JSON/列表的组件；v1 更推荐 `withStructuredOutput()` 或 Agent 的 `responseFormat` | [03. 提示词与输出](/guide/03-prompts) |
 | Zod Schema | TypeScript 优先的模式校验库，用于定义工具参数和结构化输出，兼得编译期与运行时类型安全 | [03. 提示词与输出](/guide/03-prompts) |
 | 结构化输出（Structured Output） | 让模型按预定义 Schema（通常是 Zod）返回 JSON 等结构化数据，而非自由文本 | [03. 提示词与输出](/guide/03-prompts) |
 | 提示工程（Prompt Engineering） | 通过精心设计提示词（含上下文数据）来引导模型输出的方法；数据小且静态时它比 RAG 更简单高效 | [08. Agentic RAG](/guide/08-agentic-rag) |
@@ -56,7 +56,16 @@
 | Agent（智能体） | 能推理问题、动态决定用哪些工具、迭代逼近答案的 AI 系统（对比固定路径的链） | [05. Agent 入门](/guide/05-agents) |
 | ReAct 模式（Reasoning + Acting） | Agent 的核心推理模式：思考 → 行动（调工具）→ 观察结果 → 循环直至解决 → 作答 | [05. Agent 入门](/guide/05-agents) |
 | Agent 循环（Agent Loop） | ReAct 的迭代过程本身；`createAgent()` 已内置该循环，无需手写 | [05. Agent 入门](/guide/05-agents) |
-| createAgent() | LangChain v1 创建 Agent 的入口函数：传入 `model` 和 `tools`，内置 ReAct 循环开箱即用 | [05. Agent 入门](/guide/05-agents) |
+| createAgent() | LangChain v1 创建 Agent 的入口：`model` + `tools` + `systemPrompt`，内置 ReAct 循环 | [05. Agent 入门](/guide/05-agents) |
+| systemPrompt | 给 Agent 的常驻人设与规则，不必每次塞进 `messages` | [05. Agent 入门](/guide/05-agents) |
+| 检查点（Checkpointer） | 把 Agent 状态（含消息历史）按 `thread_id` 持久化的组件 | [05. Agent 入门](/guide/05-agents) |
+| thread_id | 一场对话的标识；同一个 id 接着聊，换一个就是新会话 | [05. Agent 入门](/guide/05-agents) |
+| MemorySaver | 进程内 checkpointer，适合本地开发；生产换数据库实现 | [05. Agent 入门](/guide/05-agents) |
+| streamEvents() | Agent 流式 API（推荐 v3）：分别迭代 `messages`（token）和 `toolCalls`（工具过程） | [05. Agent 入门](/guide/05-agents) |
+| 人工介入（Human-in-the-loop） | 敏感工具执行前暂停、等人批准的中间件模式 | [05. Agent 入门](/guide/05-agents) |
+| LangSmith | 官方可观测性平台：追踪每步思考、工具参数、耗时和失败原因 | [05. Agent 入门](/guide/05-agents) |
+| LangGraph | 底层编排框架；`createAgent()` 就跑在它上面，适合持久会话与复杂图 | [学习路线图](/guide/) |
+| Deep Agents | 带规划、子 Agent、文件系统式上下文的「开箱即用」Agent 方案 | [学习路线图](/guide/) |
 | 工具描述（Tool Description） | 工具定义中的 `description` 字段，是 Agent 判断「何时调用该工具」的唯一依据，务必写得具体 | [04. 函数调用与工具](/guide/04-tools) |
 
 ## MCP

@@ -9,7 +9,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/VitePress-1.6-646cff?logo=vite&logoColor=white" alt="VitePress">
   <img src="https://img.shields.io/badge/LangChain.js-v1-1c7ed6" alt="LangChain.js">
-  <img src="https://img.shields.io/badge/playground-13%20exercises-22b8cf" alt="13 exercises">
+  <img src="https://img.shields.io/badge/playground-15%20exercises-22b8cf" alt="15 exercises">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
 </p>
 
@@ -43,7 +43,7 @@
 | 02 Chat 模型 | 多轮历史、流式、temperature、token | 2 题 |
 | 03 提示词与结构化输出 | 模板、Few-shot、Zod | 3 题 |
 | 04 函数调用与工具 | 模型只生成意图，执行在你的代码里 | 2 题 |
-| 05 Agent | ReAct、`createAgent()` | 1 题 |
+| 05 Agent | ReAct、`createAgent()`、记忆、流式 | 3 题 |
 | 06 MCP | 把外部工具接到 Agent | 1 题 |
 | 07 文档与语义搜索 | 分块、Embedding、余弦相似度 | 2 题 |
 | 08 Agentic RAG | Agent 自主决定何时检索 | 1 题 |
@@ -57,6 +57,6 @@
 
 ## 致谢
 
-内容基于 [microsoft/langchainjs-for-beginners](https://github.com/microsoft/langchainjs-for-beginners)（MIT）提炼，**不是逐字翻译**。代码示例保留 LangChain.js v1 API。
+内容基于 [microsoft/langchainjs-for-beginners](https://github.com/microsoft/langchainjs-for-beginners)（MIT）提炼，**不是逐字翻译**。代码示例保留 LangChain.js v1 API。章节示意图同样来自该课程仓库。
 
 本仓库同样以 MIT 协议发布。欢迎纠错，见 [CONTRIBUTING.md](CONTRIBUTING.md)。

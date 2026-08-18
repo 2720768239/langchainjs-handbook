@@ -4,6 +4,7 @@
 
 ::: tip 本章速览
 - `Document` 是 LangChain 处理文本的基本单元：`pageContent` + `metadata`
+- 加载器把 PDF / 网页 / 文本统一成 `Document`；测试用 `MemoryVectorStore`，生产换持久化库
 - 长文档必须分块：`RecursiveCharacterTextSplitter` 配 `chunkSize` / `chunkOverlap`
 - **Embedding** 把文本变成语义向量——相似含义产生相似向量
 - **余弦相似度**衡量向量间的语义接近程度（文本场景首选指标）
@@ -46,6 +47,17 @@ console.log(docs[0].metadata);      // { source: './data/sample.txt' }
 ::: tip 导入路径说明
 课程使用 `@langchain/classic` 系列导入（如 `@langchain/classic/document_loaders/fs/text`）。如果你看到旧教程用别的路径，以 `@langchain/classic` 为准。
 :::
+
+真实项目很少只有一份 `.txt`。加载器实现同一个接口（`load()` 返回 `Document[]`），换格式通常只换导入：
+
+| 来源 | 常用加载器 | 说明 |
+|------|-----------|------|
+| 纯文本 | `TextLoader` | 本章示例 |
+| PDF | `PDFLoader`（`@langchain/community`） | 说明书、论文、合同 |
+| 网页 | `CheerioWebBaseLoader` | 抓公开文档站 |
+| 目录 | `DirectoryLoader` | 一次灌入整个文件夹 |
+
+完整列表见[文档加载器集成](https://docs.langchain.com/oss/javascript/integrations/document_loaders)。选型原则：**先统一成 `Document`，再谈分块。**
 
 ![文档处理流水线：加载 → 分块 → Embedding → 向量存储 → 语义搜索](/images/07-documents-embeddings-semantic-search/document-processing-pipeline.png)
 
@@ -202,6 +214,10 @@ const results = await vectorStore.similaritySearch("animals that live indoors", 
 
 ![关键词搜索只认字面匹配，语义搜索理解含义](/images/07-documents-embeddings-semantic-search/semantic-search-comparison.png)
 
+::: tip 从 MemoryVectorStore 迁到生产
+`MemoryVectorStore` 进程一关数据就没了。接口是统一的：`fromDocuments` / `similaritySearch` / `asRetriever`，换存储通常只改导入和连接参数。常见选择：[Chroma](https://docs.langchain.com/oss/javascript/integrations/vectorstores)（本地）、Pinecone / Qdrant / Weaviate（云）。同一套知识库不要混用不同 Embedding 模型——向量空间不兼容。
+:::
+
 ### 带分数的搜索
 
 想知道每个结果到底匹配得多好，用 `similaritySearchWithScore()`：
@@ -261,10 +277,11 @@ const batchEmbeddings = await embeddings.embedDocuments(texts);
 ## ✅ 核心要点
 
 - **`Document` = `pageContent` + `metadata`**，是全流程的基本数据单元；分块时元数据自动继承
+- 换文档格式先换加载器（PDF / 网页 / 目录），接口都是 `load()` → `Document[]`
 - **分块是权衡艺术**：`chunkSize` 平衡精度与上下文，`chunkOverlap`（10~20%）防止边界语义断裂
 - **Embedding 把含义映射为向量**，相似含义 → 相似向量，这是语义搜索的全部基础
 - **余弦相似度**是文本向量比较的标准指标（0~1，越高越相似）
-- **向量存储 + `similaritySearch()`** 让「按含义找文档」只需几行代码
+- **向量存储 + `similaritySearch()`** 让「按含义找文档」只需几行代码；`MemoryVectorStore` 只适合测试
 - **批量优先**：`embedDocuments()` 比循环 `embedQuery()` 快 5~10 倍
 - 完整流水线：**加载 → 分块 → Embedding → 向量存储 → 语义搜索**——这正是下一章 RAG 系统的检索底座
 
@@ -275,7 +292,8 @@ const batchEmbeddings = await embeddings.embedDocuments(texts);
 
 ## 📚 延伸阅读
 
-- [LangChain.js 文档加载器](https://js.langchain.com/docs/modules/data_connection/document_loaders/)
-- [LangChain.js 文本拆分器指南](https://js.langchain.com/docs/modules/data_connection/document_transformers/)
-- [LangChain.js 向量存储指南](https://js.langchain.com/docs/modules/data_connection/vectorstores/)
+- [文档加载器](https://docs.langchain.com/oss/javascript/integrations/document_loaders)
+- [文本拆分器](https://docs.langchain.com/oss/javascript/integrations/splitters)
+- [向量存储](https://docs.langchain.com/oss/javascript/integrations/vectorstores)
+- [Embedding 模型](https://docs.langchain.com/oss/javascript/integrations/embeddings)
 - [OpenAI Embeddings 指南](https://platform.openai.com/docs/guides/embeddings)

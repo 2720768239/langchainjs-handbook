@@ -1,120 +1,73 @@
 # 05. Agent 入门
 
-> 🎯 理解 Agent 的 ReAct 工作模式，学会用 `createAgent()` 一行代码构建能自主推理、选工具、迭代解决问题的智能体（Agent）。
+> 🎯 理解 Agent 如何「思考 → 调工具 → 再思考」，并用 `createAgent()` 把第 04 章手写的循环交给框架。
 
 ::: tip 本章速览
-- **LLM vs Agent**：LLM 只能生成文本，Agent 能推理 + 用工具行动 + 迭代直到解决问题
-- **ReAct 模式**：思考（Thought）→ 行动（Action）→ 观察（Observation）循环，直到给出最终答案
-- **createAgent()**：官方推荐的生产级 API，自动接管上一章手写的整个工具循环
-- **调用方式**：`agent.invoke({ messages })` 传入消息数组，从 `response.messages` 末尾取答案
-- **多工具 Agent**：把工具数组交给 Agent，它按语义自动路由
-- **中间件（Middleware）**：不改工具和核心逻辑，即插即用地加日志、错误处理、对话总结等能力
+- Agent = 模型 + 工具 + 循环：自己决定调什么、调几次，直到能回答
+- `createAgent({ model, tools, systemPrompt })` 一行接管循环；答案在 `response.messages` 末尾
+- 多工具靠 **名称 + 描述** 路由，描述写清楚才会选得准
+- 跨请求记忆用 `checkpointer` + `thread_id`，不要自己记账
+- 看过程用 `agent.stream({ streamMode: "updates" })`，不要用第 02 章的 `model.stream()`
 :::
 
-## 📖 经理与专家类比
+## 经理与专家：Agent 在做什么
 
-想象你是带着专家团队的项目经理：数据分析师能查库、研究员能搜网、会计能算数。有人问"本季度收入同比增长多少？"，你不会亲自干活，而是：
+想象你带着一组专家：有人能查库、有人能搜网、有人能算数。有人问「本季度收入同比增长多少？」，你不会亲自干活，而是：
 
-1. **推理**："我需要数据库里的数据，还需要计算"
-2. **行动**：请数据分析师取收入数据
-3. **观察**：看拿到的数据
-4. **推理**："现在该算百分比了" → **行动**：请会计计算 → **观察**：拿到结果
-5. **回复**：给出最终答案
+1. **想**：先要数据，再算百分比
+2. **做**：请数据分析师取数 → 看结果 → 再请会计计算
+3. **答**：把结果告诉提问的人
 
 ![项目经理与专家团队 vs AI Agent 与工具：两者遵循相同的委派迭代模式](/images/05-agents/manager-specialists-analogy.png)
 
-AI Agent 的工作方式完全一样：**思考**需要什么 → **选择**工具 → **执行** → **评估**结果 → **重复**直到有答案。
-
-## LLM vs Agent
-
-同一个问题，两种截然不同的表现：
+Agent 一模一样。同一句「巴黎现在天气如何？」：
 
 ```text
-标准 LLM（没有工具，没有自主性）：
-User: "What's the current weather in Paris?"
-LLM:  "I cannot access real-time weather data..."
-
-带工具的 Agent：
-User:  "What's the current weather in Paris?"
-Agent: [思考] 我需要用天气工具
-Agent: [行动] getWeather({ city: "Paris" })
-Agent: [观察] "18°C, partly cloudy"
-Agent: [回复] "It's currently 18°C and partly cloudy in Paris"
+裸 LLM：  我无法访问实时天气……
+Agent：   思考 → getWeather({ city: "Paris" }) → 观察 "18°C"
+          → "巴黎现在 18°C，少云。"
 ```
 
 ![标准 LLM 局限于训练数据，带工具的 Agent 可以访问实时数据并采取行动](/images/05-agents/llm-vs-agent.png)
 
-## ReAct 模式：推理 + 行动
-
-ReAct = **Rea**soning（推理）+ **Act**ing（行动），是 Agent 的核心运行模式：
+这个「思考 → 行动 → 观察 → 重复 → 作答」的循环叫 **ReAct**（Reasoning + Acting）。多步任务长这样：
 
 ```text
-1. Thought（思考）：下一步该做什么？
-2. Action（行动）：调用某个具体工具
-3. Observation（观察）：工具返回了什么？
-4. 按需重复 1-3
-5. Final Answer（最终答案）：回复用户
-```
+User: 先算 25 * 17，再判断是不是质数
 
-多步任务的完整走向长这样：
-
-```text
-User: "Calculate 25 * 17, then tell me if it's a prime number"
-
-Thought 1: 我需要先算 25 * 17
-Action 1:  calculator({ expression: "25 * 17" })
-Observation 1: 425
-
-Thought 2: 我需要检查 425 是不是质数
-Action 2:  isPrime({ number: 425 })
-Observation 2: false（能被 5 整除）
-
-Final Answer: "25 * 17 = 425，它不是质数，因为能被 5 整除。"
+Thought 1 → calculator("25 * 17") → 425
+Thought 2 → isPrime(425)          → 不是（能被 5 整除）
+Final Answer: 425，不是质数。
 ```
 
 ![ReAct 模式流程：Agent 迭代地推理、行动、观察，直到得出答案](/images/05-agents/react-pattern-flow.png)
 
-每一步用哪个工具、循环几轮，都由 Agent 自主决定——这正是它和"手动编排工具调用"的本质区别。
+和第 04 章「手动调一次工具」的差别：用哪个工具、循环几轮，由 Agent 自己决定。
 
 ## 从手动循环到 createAgent()
 
-上一章你手写过工具循环。把它包上 while 循环，其实就是一个最简 Agent（课程 `samples/` 里的手动实现）：
+把第 04 章的三步循环包进 `for`，其实就是一个最简 Agent：
 
 ```ts
-import { ChatOpenAI } from "@langchain/openai";
-import { AIMessage, HumanMessage, ToolMessage, tool } from "langchain";
-
 const modelWithTools = model.bindTools([calculatorTool]);
-let messages: any[] = [new HumanMessage("What is 125 * 8?")];
-const maxIterations = 3; // 防止无限循环
+let messages = [new HumanMessage("What is 125 * 8?")];
 
-for (let i = 1; i <= maxIterations; i++) {
+for (let i = 1; i <= 3; i++) {
   const response = await modelWithTools.invoke(messages);
-
-  // 没有工具调用 = Agent 认为可以作答了，退出循环
-  if (!response.tool_calls || response.tool_calls.length === 0) {
+  if (!response.tool_calls?.length) {
     console.log(`Final Answer: ${response.content}`);
     break;
   }
-
-  // 执行工具，把 AIMessage + ToolMessage 追加进历史，进入下一轮
-  const toolCall = response.tool_calls[0];
-  const toolResult = await calculatorTool.invoke(calculatorTool.schema.parse(toolCall.args));
+  const call = response.tool_calls[0];
+  const result = await calculatorTool.invoke(calculatorTool.schema.parse(call.args));
   messages.push(
     new AIMessage({ content: response.content, tool_calls: response.tool_calls }),
-    new ToolMessage({ content: String(toolResult), tool_call_id: toolCall.id || "" })
+    new ToolMessage({ content: String(result), tool_call_id: call.id || "" }),
   );
 }
 ```
 
-这段代码能跑，但每个 Agent 都要重复写：循环控制、消息簿记、迭代上限、错误处理…… LangChain.js 的 `createAgent()` 把这些全部接管：
-
-- ✅ 自动管理 ReAct 循环（思考 → 行动 → 观察 → 重复）
-- ✅ 自动维护消息历史
-- ✅ 内置迭代限制，防止无限循环
-- ✅ 生产级错误处理
-
-### createAgent() 基础用法
+能跑，但循环控制、消息簿记、迭代上限、错误处理每个 Agent 都要重写。`createAgent()` 把这些收走：
 
 ```ts
 import { createAgent, HumanMessage, tool } from "langchain";
@@ -130,7 +83,7 @@ const calculatorTool = tool(
     schema: z.object({
       expression: z.string().describe("The mathematical expression to evaluate"),
     }),
-  }
+  },
 );
 
 const model = new ChatOpenAI({
@@ -139,81 +92,152 @@ const model = new ChatOpenAI({
   apiKey: process.env.AI_API_KEY,
 });
 
-// 一行创建 Agent —— 上面那段手动循环全部消失
 const agent = createAgent({
   model,
   tools: [calculatorTool],
 });
 
-// 输入：消息数组
 const response = await agent.invoke({
   messages: [new HumanMessage("What is 125 * 8?")],
 });
 
-// 输出：完整的消息历史，最后一条是最终答案
 const lastMessage = response.messages[response.messages.length - 1];
 console.log(lastMessage.content); // "125 × 8 = 1000"
 ```
 
-注意输入输出的形状（第 03 章"Agent 用消息"在这里落地了）：
+输入输出都是消息（第 03 章那条在这里落地）：
 
-- **输入**是 `{ messages: [...] }`——消息数组，而不是裸字符串
-- **输出**的 `response.messages` 包含整个过程的所有消息（用户提问、工具调用、工具结果、最终回复），**取最后一条**即最终答案；中间消息可用于调试和展示推理过程
+- **进**：`{ messages: [...] }`，不是裸字符串
+- **出**：`response.messages` 是全过程（提问、工具调用、工具结果、最终回复）。**最后一条**才是答案；中间消息用来调试
 
-## 多工具 Agent
+### 三要素：model / tools / systemPrompt
 
-真实助手需要多种能力。把工具数组交给 `createAgent()`，路由逻辑一行都不用写：
+`createAgent()` 最常用的三个参数：
+
+| 参数 | 作用 | 和前面章节的关系 |
+|------|------|------------------|
+| `model` | 用哪个大脑 | `ChatOpenAI` 实例，或 `"openai:gpt-4.1-mini"` 这种字符串 |
+| `tools` | 能调哪些工具 | 第 04 章的 `tool()` |
+| `systemPrompt` | 常驻人设和规则 | 等价于始终生效的 `SystemMessage`，不必每次塞进 `messages` |
 
 ```ts
 const agent = createAgent({
   model,
-  tools: [calculatorTool, weatherTool, searchTool], // 多个工具
+  tools: [calculatorTool],
+  systemPrompt:
+    "You are a careful math assistant. Always use the calculator for arithmetic. Be concise.",
+});
+```
+
+常驻规则放 `systemPrompt`；要按用户/租户动态改，再用后面的中间件，不要把人设写进每一条 `HumanMessage`。
+
+::: tip 本课程为什么仍传 ChatOpenAI 实例？
+字符串写法适合标准提供商。GitHub Models / Azure 这类自定义 `baseURL`，继续用第 00 章配好的实例最稳。
+:::
+
+## 多工具 Agent
+
+把工具数组交给 `createAgent()`，路由不用自己写：
+
+```ts
+const agent = createAgent({
+  model,
+  tools: [calculatorTool, weatherTool, searchTool],
+  systemPrompt: "Use tools when they help; otherwise answer directly.",
 });
 
 const queries = [
-  "What is 50 * 25?",              // → Agent 自己选 calculator
-  "What's the weather in Tokyo?",  // → Agent 自己选 getWeather
-  "Tell me about LangChain.js",    // → Agent 自己选 search
+  "What is 50 * 25?",              // → calculator
+  "What's the weather in Tokyo?",  // → getWeather
+  "Tell me about LangChain.js",    // → search
 ];
 
 for (const query of queries) {
   const response = await agent.invoke({ messages: [new HumanMessage(query)] });
-  const lastMessage = response.messages[response.messages.length - 1];
-  console.log(`User: ${query}\nAgent: ${lastMessage.content}\n`);
+  console.log(response.messages.at(-1)?.content);
 }
 ```
 
-Agent 的选择依据是工具的**名称和描述**与查询的语义匹配度——所以第 04 章"把描述写具体"的最佳实践，在 Agent 场景下更加重要。
+选择依据是工具的 **名称 + 描述** 和问题的语义匹配——第 04 章「把描述写具体」在这里更重要。
 
 ![Agent 根据查询与工具描述的语义匹配智能选择工具](/images/05-agents/tool-selection-logic.png)
 
-## 中间件：Agent 的插件系统
+## 短时记忆：checkpointer + thread_id
 
-生产环境的 Agent 需要日志、错误兜底、成本控制……这些横切需求如果写进工具或业务逻辑里会很脏。**中间件（middleware）** 让你在不改动工具和 Agent 核心逻辑的前提下拦截并修改行为——把它想象成 Agent 的"插件"。
+第 02 章的真相没变：模型没有记忆，记忆就是每次送出去的 messages。手写聊天机器人自己 `push` 就行；Agent 循环里还会插入工具调用和 `ToolMessage`，自己记账很快失控。
 
-### 自定义中间件：createMiddleware()
-
-两个最常用的拦截点：
-
-- **`wrapModelCall`**：拦截对模型的调用——动态换模型、记日志、注入上下文
-- **`wrapToolCall`**：拦截工具执行——错误兜底、重试、权限检查
+给 Agent 挂一个 **checkpointer**，再用 **`thread_id` 标识一场会话**：
 
 ```ts
-import { createAgent, createMiddleware } from "langchain";
+import { MemorySaver } from "@langchain/langgraph";
 
-// 中间件 1：动态模型选择 —— 长对话切换到能力更强的模型
-const dynamicModelSelection = createMiddleware({
-  name: "DynamicModelSelection",
-  wrapModelCall: (request, handler) => {
-    if (request.messages.length > 10) {
-      // 替换请求里的模型后继续执行
-      return handler({ ...request, model: capableModel });
-    }
-    return handler(request); // 不满足条件则原样放行
-  },
+const agent = createAgent({
+  model,
+  tools: [calculatorTool],
+  systemPrompt: "You are a helpful assistant.",
+  checkpointer: new MemorySaver(), // 进程内；生产换 Postgres 等
 });
 
-// 中间件 2：工具错误兜底 —— 工具挂了返回友好提示而不是让 Agent 崩溃
+const thread = { configurable: { thread_id: "user-42" } };
+
+await agent.invoke(
+  { messages: [new HumanMessage("Hi! My name is Bob.")] },
+  thread,
+);
+
+const followUp = await agent.invoke(
+  { messages: [new HumanMessage("What's my name?")] },
+  thread, // 同一个 id → 还记得 Bob
+);
+```
+
+- 没挂 checkpointer：每次 `invoke` 都是新会话
+- 同一 `thread_id`：自动带上已保存状态（含工具调用链）
+- 换一个 `thread_id`：另一场对话，互不干扰
+- `MemorySaver` 在内存里，进程重启即丢；`MemorySaver` 和 Agent 要放在模块顶层，不要每次 `new`
+
+跨用户、跨会话的「长期档案」是另一套 Store API，见[长期记忆](https://docs.langchain.com/oss/javascript/langchain/long-term-memory)。入门把短时记忆做对即可。
+
+## 流式观察循环
+
+第 02 章的 `model.stream()` 流的是**一段回复的 token**。Agent 会先调工具再作答，界面通常要看到「正在查天气」。用 `stream()` + `streamMode: "updates"`，每完成一个步骤吐一次增量——训练场也是这套：
+
+```ts
+const stream = await agent.stream(
+  { messages: [new HumanMessage("What is 25 * 17?")] },
+  { streamMode: "updates" },
+);
+
+for await (const chunk of stream) {
+  for (const msg of chunk.model?.messages ?? []) {
+    for (const call of msg.tool_calls ?? []) {
+      console.log("即将调用:", call.name, call.args);
+    }
+    if (msg.content) console.log("回复:", msg.content);
+  }
+  for (const msg of chunk.tools?.messages ?? []) {
+    console.log("工具结果:", msg.content);
+  }
+}
+```
+
+一次「先调工具再作答」的常见顺序：
+
+1. `chunk.model` —— 带 `tool_calls` 的 `AIMessage`
+2. `chunk.tools` —— `ToolMessage`
+3. `chunk.model` —— 最终回答
+
+::: details 复杂 UI：streamEvents（v1.3+）
+要把「打字机 token」和「工具调用」拆成两条独立的流，用 [`streamEvents`](https://docs.langchain.com/oss/javascript/langchain/event-streaming)（`version: "v3"`），分别消费 `stream.messages` 和 `stream.toolCalls`。入门不必先学它。
+:::
+
+## 中间件：不改工具，也能加能力
+
+日志、重试、成本上限如果写进每个工具会很脏。**中间件**挂在循环外面，拦截模型调用或工具执行：
+
+```ts
+import { createAgent, createMiddleware, summarizationMiddleware } from "langchain";
+
 const toolErrorHandler = createMiddleware({
   name: "ToolErrorHandler",
   wrapToolCall: async (request, handler) => {
@@ -221,82 +245,70 @@ const toolErrorHandler = createMiddleware({
       return await handler(request);
     } catch (error) {
       return {
-        content: `I encountered an error: ${(error as Error).message}. Let me try a different approach.`,
+        content: `工具出错：${(error as Error).message}。换个办法试试。`,
       };
     }
   },
 });
 
-// 挂载中间件
-const agent = createAgent({
-  model: basicModel,
-  tools: [calculatorTool, searchTool],
-  middleware: [dynamicModelSelection, toolErrorHandler],
-});
-```
-
-典型生产用途：简单任务用便宜模型（成本优化）、失败自动重试（弹性）、全量请求日志（可观测性）、按用户注入权限上下文（多租户）。
-
-### 内置中间件：summarizationMiddleware
-
-常见需求官方已经造好了轮子。最实用的是 `summarizationMiddleware`：长对话会撑爆上下文窗口、推高 token 成本，它能自动把旧消息压缩成摘要，同时保留最近的消息不动。
-
-```ts
-import { createAgent, summarizationMiddleware } from "langchain";
-
 const agent = createAgent({
   model,
-  tools: [researchTool],
+  tools: [calculatorTool, searchTool],
   middleware: [
+    toolErrorHandler,
     summarizationMiddleware({
-      model,                                 // 用哪个模型来做总结
-      trigger: { tokens: 200, messages: 4 }, // 何时总结（AND：两个条件都满足）
-      keep: { messages: 2 },                 // 总结后保留最近 2 条消息
+      model,
+      trigger: { tokens: 4000, messages: 20 }, // 两条件都满足才总结
+      keep: { messages: 10 },                  // 保留最近 10 条，须覆盖完整工具调用对
     }),
   ],
 });
 ```
 
-配置规则：
+两个常用钩子：`wrapModelCall`（换模型、打日志）、`wrapToolCall`（重试、权限、错误兜底）。
 
-| 参数 | 写法 | 语义 |
-|------|------|------|
-| `trigger` | `{ tokens: 1000, messages: 8 }` | AND：token 数**且**消息数都超标才总结 |
-| `trigger` | `[{ tokens: 2000 }, { messages: 10 }]` | OR：任一超标就总结 |
-| `keep` | `{ messages: N }` / `{ tokens: N }` / `{ fraction: 0.3 }` | 三选一：保留最近 N 条 / N token / 30% 上下文（默认 `{ messages: 20 }`） |
+| 内置中间件 | 用来干什么 |
+|-----------|-----------|
+| `summarizationMiddleware` | 长对话压缩旧消息，省 token |
+| `humanInTheLoopMiddleware` | 敏感工具执行前等人批准 |
+| `toolRetryMiddleware` | 工具偶发失败时退避重试 |
+| `modelFallbackMiddleware` | 主模型挂了切备用 |
+| `piiMiddleware` | 处理邮箱、卡号等 PII |
+| `modelCallLimitMiddleware` | 限制单次运行的模型调用次数 |
 
-触发后，旧消息被替换成一条"Here is a summary of the conversation to date: ..."的摘要消息，后面跟着保留的最近消息——token 大幅下降，上下文连贯性仍在。适用场景：长时聊天会话、多轮研究 Agent、客服机器人等一切"对话历史会持续增长"的系统。
-
-::: tip 其他内置中间件
-除了总结，LangChain.js 还内置了如 human-in-the-loop（人工介入：敏感工具执行前暂停等待人工批准）等中间件，且内置与自定义中间件可以在 `middleware: [...]` 数组里自由组合。完整列表见[内置中间件文档](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in)。
-:::
+按需选用，不必一次全上。完整参数见[内置中间件](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in)。排错 Agent 时，[LangSmith](https://docs.langchain.com/langsmith/observability) 能把每步思考和工具参数摊开，比只看最后一条 `content` 清楚得多（配置见[第 00 章](/guide/00-setup)）。
 
 ## ⚠️ 常见坑
 
-- **`Cannot read property 'tool_calls' of undefined`**：手写循环时忘了 `bindTools()`。必须用绑定后的模型实例调用。
-- **Agent 无限循环 / 顶到 maxIterations**：停止条件应是"没有 tool_calls 就 break"；开发期把迭代上限设小（如 3）快速暴露问题；工具返回值太含糊也会让 Agent 转圈——返回描述性结果（`"The calculation result is 42..."` 而不是 `"42"`）。
-- **`Tool 'xxx' not found`**：模型生成的工具名和你定义的 `name` 对不上。工具名必须精确一致，别在运行中改名。
-- **Agent 选错工具**：描述太含糊（`"Does calculations"`）。写清用途和时机：`"Perform mathematical calculations like addition, multiplication, percentages. Use this when you need to compute numbers."`
-- **取答案的姿势不对**：`agent.invoke()` 返回的是**全部消息历史**，答案在 `response.messages[response.messages.length - 1].content`，不要直接读 `response.content`。
-- **summarization 的 `keep` 切断工具调用链**：保留的消息里如果 `AIMessage(tool_calls)` 和对应 `ToolMessage` 被拆散，会导致请求非法——保留数量要覆盖完整的调用对。
-- **该用 createAgent 时还在手写循环**：手动循环适合学习原理和特殊定制；生产环境直接用 `createAgent()`，少写代码还白拿错误处理和迭代保护。
+| 坑 | 解法 |
+|----|------|
+| `tool_calls` 是 `undefined` | 手写循环时必须用 `bindTools()` 之后的模型 |
+| 转圈 / 顶到迭代上限 | 工具返回说明性结果（`"结果是 42"` 而不是 `"42"`）；开发期把上限设小 |
+| `Tool 'xxx' not found` | 模型生成的名字必须和 `tool()` 的 `name` 完全一致 |
+| `response.content` 是空的 | 答案在 `response.messages.at(-1).content` |
+| 下一轮 Agent「失忆」 | 同时传入 `checkpointer` **和**同一个 `thread_id`；二者缺一不可 |
+| `model.stream()` 看不到工具步骤 | 改用 `agent.stream(..., { streamMode: "updates" })` |
+| summarization 之后请求非法 | `keep` 不能把 `AIMessage(tool_calls)` 和对应 `ToolMessage` 拆开 |
 
 ## ✅ 核心要点
 
-- Agent = LLM + 工具 + 自主循环：自己决定用什么工具、何时用、循环几轮
-- ReAct 是核心模式：推理 → 行动 → 观察，重复直到解决
-- `createAgent({ model, tools })` 一行接管手动循环的全部样板代码，是生产推荐方式
-- 输入输出都是消息：`agent.invoke({ messages })` 进，`response.messages` 末尾取答案
-- 工具描述质量直接决定 Agent 的工具选择质量
-- 中间件是 Agent 的插件层：`wrapModelCall` / `wrapToolCall` 自定义拦截，`summarizationMiddleware` 等内置件开箱即用
+- Agent = 模型 + 工具 + 自主循环；ReAct 就是这个循环的名字
+- `createAgent({ model, tools, systemPrompt })` 接管样板代码；答案取 `messages` 末尾
+- 多工具靠描述路由；短时记忆靠 `checkpointer` + `thread_id`
+- 看步骤用 `agent.stream`，看 token 才用第 02 章的 `model.stream`
+- 横切能力用中间件，不要改工具实现
 
 ## 🏋️ 动手练习
 
-- [用 createAgent 构建智能体](/playground/?id=ch05-create-agent) —— 定义工具、创建 Agent、观察它自主选择工具解决问题
+- [用 createAgent 构建智能体](/playground/?id=ch05-create-agent) —— 定义工具、创建 Agent、观察它自主选工具
+- [用 checkpointer 记住多轮对话](/playground/?id=ch05-agent-memory) —— 同一 `thread_id` 记得住，换一条互不干扰
+- [流式观察 Agent 的工具调用](/playground/?id=ch05-agent-stream) —— 用 `stream({ streamMode: "updates" })` 收集 `tool_calls`
 
 ## 📚 延伸阅读
 
-- [LangChain Agents 文档](https://docs.langchain.com/oss/javascript/langchain/agents)
-- [createAgent() API 参考](https://docs.langchain.com/oss/javascript/langchain/agents#createagent)
-- [内置中间件文档](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in)
-- [ReAct 论文（arXiv）](https://arxiv.org/abs/2210.03629)
+- [LangChain Agents](https://docs.langchain.com/oss/javascript/langchain/agents)
+- [短时记忆](https://docs.langchain.com/oss/javascript/langchain/short-term-memory)
+- [Streaming](https://docs.langchain.com/oss/javascript/langchain/streaming) · [streamEvents](https://docs.langchain.com/oss/javascript/langchain/event-streaming)
+- [内置中间件](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in)
+- [LangSmith](https://docs.langchain.com/langsmith/observability)
+- [ReAct 论文](https://arxiv.org/abs/2210.03629)

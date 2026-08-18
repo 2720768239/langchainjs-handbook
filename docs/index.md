@@ -25,7 +25,7 @@ features:
     details: 知识点导向，不是课程翻译。每章都有速览、关键代码、常见坑和练习入口。
     link: /guide/
   - icon: 🏋️
-    title: 13 题交互训练场
+    title: 15 题交互训练场
     details: 左侧题目与示例，右侧编辑器，下方测试结果与控制台。进度存在浏览器本地。
     link: /playground/
   - icon: ⚡

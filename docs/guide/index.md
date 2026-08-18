@@ -22,7 +22,7 @@
 | [02. Chat 模型与基本交互](/guide/02-chat-models) | 对话历史管理、流式输出 `stream()`、temperature/maxTokens、重试、token 追踪 | [多轮对话](/playground/?id=ch02-multi-turn)、[流式输出](/playground/?id=ch02-streaming) |
 | [03. 提示词、消息与结构化输出](/guide/03-prompts) | 提示词模板、Few-Shot、Zod Schema、结构化输出 | [提示词模板](/playground/?id=ch03-prompt-template)、[Few-shot](/playground/?id=ch03-few-shot)、[结构化输出](/playground/?id=ch03-structured-output) |
 | [04. 函数调用与工具](/guide/04-tools) | `tool()` 定义、工具绑定、工具调用循环 | [定义工具](/playground/?id=ch04-define-tool)、[手写调用循环](/playground/?id=ch04-tool-loop) |
-| [05. Agent 入门](/guide/05-agents) | ReAct 模式、`createAgent()`、Agent 循环、工具自主选择 | [天气助手 Agent](/playground/?id=ch05-create-agent) |
+| [05. Agent 入门](/guide/05-agents) | ReAct、`createAgent()` 三要素、`checkpointer` 短时记忆、Agent 流式、中间件 | [天气助手](/playground/?id=ch05-create-agent)、[会话记忆](/playground/?id=ch05-agent-memory)、[流式观察](/playground/?id=ch05-agent-stream) |
 | [06. 模型上下文协议 MCP](/guide/06-mcp) | MCP 架构、HTTP/stdio 传输、多服务器模式 | [接入 MCP 工具](/playground/?id=ch06-mcp-tools) |
 | [07. 文档、Embedding 与语义搜索](/guide/07-embeddings) | 文档加载与切分、向量嵌入、相似度搜索 | [文本分块](/playground/?id=ch07-text-splitter)、[语义搜索](/playground/?id=ch07-semantic-search) |
 | [08. 构建 Agentic RAG 系统](/guide/08-agentic-rag) | 检索工具化、Agent 决定何时搜索、传统 RAG vs Agentic RAG | [组装 Agentic RAG](/playground/?id=ch08-agentic-rag) |
@@ -62,6 +62,18 @@ LLM 应用开发的很多认知（比如「模型没有记忆」「流式的首�
 :::
 
 每章笔记的固定结构：**本章速览** → 知识点小节 → **常见坑** → **核心要点** → **动手练习** → **延伸阅读**。赶时间可以只看速览和核心要点，需要排错时直接翻常见坑。
+
+## 🚀 学完本站之后：三条进阶路
+
+本站停在「能独立拼出 Agentic RAG」。往生产走时，官方把生态拆成三层，按需选一条，不必全学：
+
+| 你接下来想做的事 | 去哪 | 和本站的衔接 |
+|------------------|------|-------------|
+| 给 Agent 加持久会话、分支流程、人工审批 | [LangGraph Quickstart](https://docs.langchain.com/oss/javascript/langgraph/quickstart) | 第 05 章的 `checkpointer` / 中间件已经踩在 LangGraph 运行时上 |
+| 看清每一步思考、工具参数、耗时和失败原因 | [LangSmith 可观测性](https://docs.langchain.com/langsmith/observability) | 比只看 `response.messages` 末尾更适合排错 Agent |
+| 规划任务、拆子 Agent、管文件系统式的长期上下文 | [Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/overview) | 第 05～08 章的「工具 + 检索 + Agent」是它的前置 |
+
+产品定位对照见官方 [LangChain vs LangGraph vs Deep Agents](https://docs.langchain.com/oss/javascript/concepts/products)。
 
 ## 🔗 相关资源
 

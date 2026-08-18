@@ -49,6 +49,7 @@ export const moduleRegistry: Record<string, unknown> = {
   // ---- 确定性替身 ----
   "@langchain/openai": openaiMock,
   langchain: langchainMock,
+  "@langchain/langgraph": { MemorySaver: langchainMock.MemorySaver },
   "@langchain/mcp-adapters": { MultiServerMCPClient },
   "@langchain/classic/vectorstores/memory": vectorStoreMock,
   "langchain/vectorstores/memory": vectorStoreMock,

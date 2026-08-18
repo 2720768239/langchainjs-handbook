@@ -37,7 +37,15 @@
 - **Agent**：能自主推理、决定调用哪个工具的 AI 系统 —— 第 05 章
 - **记忆（Memory）**：跨轮次保持上下文 —— 第 02 章
 
-它们的协作方式：`用户输入 → 记忆 → 提示词 → 工具/Agent → 模型 → 响应`。现在不必全部理解，后面每章都会动手实践。
+它们的协作方式可以先记这条流水线：
+
+```
+用户输入 →（可选：附上对话历史 / 记忆）→ 提示词 → 模型
+                ↘ 需要外部能力时：Agent 选工具并执行 ↗
+                                              → 响应
+```
+
+现在不必全部理解，后面每章都会动手实践。第 02 章会讲「记忆其实是你维护的消息数组」，第 05 章再用 `checkpointer` 把它自动化。
 
 ## 第一次 LLM 调用
 
@@ -187,12 +195,12 @@ compareModels().catch(console.error);
 
 去训练场亲手跑一遍本章代码：
 
-- [第一次 LLM 调用](/playground/?id=ch01-hello-llm) —— 创建模型、调用 `invoke()`、体验 SystemMessage 的效果
+- [第一次 LLM 调用](/playground/?id=ch01-hello-llm) —— 创建模型、调用 `invoke()`、从 `AIMessage` 里取出回复文本
 
-也可以在本地修改 `01-hello-world.ts` 的问题（比如换成你最喜欢的编程概念），观察 AI 如何适应不同问题。
+也可以在本地修改 `01-hello-world.ts` 的问题，或给 `invoke()` 传入 `SystemMessage` + `HumanMessage`，观察人格设定如何改变回答风格。
 
 ## 📚 延伸阅读
 
-- [LangChain.js 核心概念](https://js.langchain.com/docs/concepts/)
-- [Chat 模型集成列表](https://js.langchain.com/docs/integrations/chat/)
+- [LangChain.js 核心概念](https://docs.langchain.com/oss/javascript/langchain/overview)
+- [Chat 模型文档](https://docs.langchain.com/oss/javascript/integrations/chat)
 - [GitHub Models 市场](https://github.com/marketplace/models)

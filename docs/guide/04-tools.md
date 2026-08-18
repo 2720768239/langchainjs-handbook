@@ -331,7 +331,6 @@ const response = await model.invoke(
 
 ## 📚 延伸阅读
 
-- [Tool Calling 文档](https://js.langchain.com/docs/how_to/tool_calling/)
-- [自定义工具指南](https://js.langchain.com/docs/how_to/custom_tools/)
+- [Tool Calling 文档](https://docs.langchain.com/oss/javascript/langchain/tools)
 - [提供商内置工具（OpenAI）](https://docs.langchain.com/oss/javascript/integrations/tools/openai)
 - [Zod 官方文档](https://zod.dev/)

@@ -81,6 +81,10 @@ console.log(`📊 历史中共 ${messages.length} 条消息`); // 6 条
 3. **AI 能引用任何早前消息**，代词「它」「这个」都能正确解析
 4. **每次 `invoke()` 发送的是完整历史**，这就是「记忆」的真相
 
+::: tip 做到 Agent 以后，历史不必再手写
+第 05 章会用 `checkpointer` + `thread_id` 自动保管这场对话。原理相同，只是记账的人换成了框架。
+:::
+
 ## 流式输出 stream()
 
 问复杂问题时，等 5~10 秒才看到完整回复的体验很糟。**流式输出（Streaming）**让文字像 ChatGPT 那样逐词出现——就像朋友边想边说，而不是憋完一整段才开口。
@@ -114,6 +118,10 @@ for await (const chunk of stream) {
 - ✅ 长回复（文章、解释、代码）
 - ✅ 面向用户的聊天界面——即刻反馈，感知性能大幅提升（哪怕总耗时一样）
 - ❌ 需要先拿到完整结果再处理的场景（解析、校验、后处理）
+
+::: tip Agent 的流式不只是打字机
+`model.stream()` 流的是**一段回复**。要边跑边看到「正在调哪个工具」，去第 05 章用 `agent.stream()` / `streamEvents`。
+:::
 
 ::: details 流式模式下如何拿 token 用量？
 部分提供商支持 `streamOptions: { includeUsage: true }`，会在最后一个 chunk 附带用量元数据。这是提供商相关特性，用前查文档。
@@ -281,7 +289,7 @@ const recentMessages = messages.slice(-10); // 只保留最近 10 条
 const response = await model.invoke(recentMessages);
 ```
 
-这也解释了为什么要关心**上下文窗口（Context Window）**：模型能处理的历史有限（4K~200K+ token），历史越长成本越高、速度越慢——长对话必须做历史管理。
+这也解释了为什么要关心**上下文窗口（Context Window）**：模型能处理的历史有限（4K~200K+ token），历史越长成本越高、速度越慢——长对话必须做历史管理。第 05 章会用 `checkpointer` + `summarizationMiddleware` 把这件事交给 Agent。
 
 ## ⚠️ 常见坑
 
@@ -308,6 +316,6 @@ const response = await model.invoke(recentMessages);
 
 ## 📚 延伸阅读
 
-- [Chat 模型官方文档](https://js.langchain.com/docs/integrations/chat/)
-- [流式输出指南](https://js.langchain.com/docs/how_to/streaming/)
+- [Chat 模型官方文档](https://docs.langchain.com/oss/javascript/integrations/chat)
+- [流式输出指南](https://docs.langchain.com/oss/javascript/langchain/streaming)
 - [OpenAI Chat API 参数参考](https://platform.openai.com/docs/api-reference/chat/create)

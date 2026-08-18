@@ -17,7 +17,7 @@ npm run dev
 打开 http://localhost:5173/
 
 ```bash
-npm run test:exercises   # 13 道练习的参考答案必须全过
+npm run test:exercises   # 15 道练习的参考答案必须全过
 npm run build
 ```
 
@@ -27,7 +27,7 @@ npm run build
 |------|------|
 | `docs/guide/` | 章节笔记 |
 | `docs/.vitepress/theme/playground/exercises/` | 训练场题目 |
-| `docs/.vitepress/site.ts` | 仓库名 / Pages base |
+| `docs/public/images/` | 章节示意图（来自原课程 MIT 仓库，路径与笔记中 `/images/...` 对应） |
 
 新增练习时，同步改章节末尾的「动手练习」链接和学习路线图表格。
 

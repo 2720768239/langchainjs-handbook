@@ -305,6 +305,10 @@ console.log(result.age);  // 28 —— number 类型，无需解析
 - `withStructuredOutput()` 保证模型按该格式返回，Zod 自动验证
 - 结果在 TypeScript 中完全有类型，自动补全、类型检查全都有
 
+::: tip 和 Agent 级结构化输出的分工
+本章是**模型级**：一次 `invoke` 就提取。第 05 章的 `createAgent({ responseFormat })` 是 **Agent 级**——先跑工具循环，再把最终答案收成 Zod 对象（`result.structuredResponse`）。单次抽取用本章；「先查再填表」用 Agent。详见 [Structured output](https://docs.langchain.com/oss/javascript/langchain/structured-output)。
+:::
+
 ## Zod Schema 设计进阶
 
 真实场景的数据不会只有平铺的字符串。Zod 支持嵌套对象、数组、枚举、可选字段，可以描述任意复杂结构，而且能和模板串成链：
@@ -391,7 +395,7 @@ const OrderSchema = z.object({
 
 ## 📚 延伸阅读
 
-- [Prompt Templates 概念文档](https://js.langchain.com/docs/concepts/prompt_templates)
-- [Few-shot Prompting 指南](https://js.langchain.com/docs/concepts/few_shot_prompting/)
-- [Messages 概念文档](https://js.langchain.com/docs/concepts/messages)
+- [Messages 概念文档](https://docs.langchain.com/oss/javascript/langchain/messages)
+- [模型级 Structured output](https://docs.langchain.com/oss/javascript/langchain/models#structured-output)
+- [Agent 级 Structured output](https://docs.langchain.com/oss/javascript/langchain/structured-output)
 - [Zod 官方文档](https://zod.dev/)

@@ -3,9 +3,9 @@
 > 🎯 用约 15 分钟准备好开发环境：Node.js、免费的 AI 模型访问凭证、`.env` 配置，跑通第一个连通性测试。
 
 ::: tip 本章速览
-- 安装 Node.js 22+（LTS）与 `tsx`，直接运行 TypeScript 文件
+- 安装 Node.js **22+（LTS）** 与 `tsx`，直接运行 TypeScript 文件（LangChain.js v1 官方也要求 22+）
 - 用 GitHub Personal Access Token 免费调用 GitHub Models（无需信用卡）
-- 三个核心环境变量：`AI_API_KEY` / `AI_ENDPOINT` / `AI_MODEL`
+- 三个核心环境变量：`AI_API_KEY` / `AI_ENDPOINT` / `AI_MODEL`；第 07、08 章再加 `AI_EMBEDDING_MODEL`
 - 可选：Microsoft Foundry、OpenAI、Anthropic、Ollama 等其他提供商
 - 换提供商只改 `.env`，代码零改动
 :::
@@ -100,13 +100,15 @@ Copy-Item .env.example .env
 AI_API_KEY=ghp_你的GitHub Token
 AI_ENDPOINT=https://models.github.ai/inference
 AI_MODEL=openai/gpt-5-mini
+AI_EMBEDDING_MODEL=openai/text-embedding-3-small
 ```
 
-这三个变量贯穿全课程：
+这几个变量贯穿全课程：
 
 - `AI_API_KEY`：身份凭证（GitHub Token 以 `ghp_` 或 `github_pat_` 开头）
 - `AI_ENDPOINT`：AI 服务的 API 地址
-- `AI_MODEL`：使用哪个模型
+- `AI_MODEL`：对话 / Agent 用哪个 Chat 模型
+- `AI_EMBEDDING_MODEL`：第 07、08 章语义搜索用的 Embedding 模型（和 Chat 模型不是一回事）
 
 ::: warning 免费模型偶尔繁忙
 免费的 `gpt-5-mini` / `gpt-5` 有时会拥挤报错，可以把 `AI_MODEL` 换成 `openai/gpt-4.1-mini` 或 `openai/gpt-4.1` 再试。
@@ -148,6 +150,7 @@ Model response: Setup successful!
 AI_API_KEY=你的Azure API Key
 AI_ENDPOINT=https://your-resource.openai.azure.com/openai/v1
 AI_MODEL=gpt-5-mini
+AI_EMBEDDING_MODEL=text-embedding-3-small
 ```
 
 相比免费额度，Foundry 提供更高的速率限制、内容过滤、监控等企业级能力。
@@ -168,6 +171,18 @@ AI_MODEL=llama3.2
 
 Anthropic 等非 OpenAI 兼容的提供商则需要安装对应集成包（如 `@langchain/anthropic`），第 02 章的 `initChatModel()` 小节会介绍这种多提供商切换模式。
 
+## 可选：LangSmith 追踪
+
+本地脚本用 `console.log` 就够。一旦 Agent 开始调工具，你会想看到「它为什么调了这个、参数是什么、哪一步慢」。官方推荐 [LangSmith](https://docs.langchain.com/langsmith/observability)：
+
+```bash
+# 在 .env 里打开追踪（需要 LangSmith 账号和 API Key）
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=你的_LangSmith_Key
+```
+
+这不是跑通课程的前置条件。排错 Agent 时再配即可，第 05 章会再提一次。
+
 ## ⚠️ 常见坑
 
 | 问题 | 解决方法 |
@@ -177,12 +192,13 @@ Anthropic 等非 OpenAI 兼容的提供商则需要安装对应集成包（如 `
 | `401 Unauthorized` | Token 复制不完整或已过期，重新生成一个；检查是否混入空格 |
 | 429 速率限制 | GitHub Models 免费额度有限，等几分钟即可恢复；或切换到 Foundry |
 | 模型繁忙报错 | 把 `AI_MODEL` 换成 `openai/gpt-4.1-mini` 试试 |
+| 第 07 章 Embedding 报错 | 确认 `.env` 里有 `AI_EMBEDDING_MODEL`，且和 Chat 模型不是同一个名字 |
 
 ## ✅ 核心要点
 
-- Node.js 22+（LTS）+ 全局 `tsx`，所有示例用 `tsx 文件.ts` 运行
+- Node.js **22+（LTS）** + 全局 `tsx`，所有示例用 `tsx 文件.ts` 运行
 - GitHub Models 免费、无需信用卡，创建 Token 时不用勾任何权限
-- `.env` 三件套：`AI_API_KEY` / `AI_ENDPOINT` / `AI_MODEL`
+- `.env` 三件套：`AI_API_KEY` / `AI_ENDPOINT` / `AI_MODEL`（语义搜索再加 `AI_EMBEDDING_MODEL`）
 - 提供商抽象是 LangChain.js 的核心卖点：换供应商 = 改 `.env`
 - 动手前先跑 `tsx scripts/test-setup.ts` 验证连通性
 
@@ -191,4 +207,5 @@ Anthropic 等非 OpenAI 兼容的提供商则需要安装对应集成包（如 `
 - [GitHub Models 市场](https://github.com/marketplace/models)
 - [Microsoft Foundry 快速入门](https://learn.microsoft.com/azure/ai-foundry/quickstarts/get-started-code)
 - [dotenv 环境变量最佳实践](https://www.npmjs.com/package/dotenv)
+- [LangSmith 追踪入门](https://docs.langchain.com/langsmith/trace-with-langchain)
 - [Node.js 官方文档](https://nodejs.org/docs/latest/api/)
