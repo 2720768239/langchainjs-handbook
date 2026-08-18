@@ -1,6 +1,6 @@
 # 贡献指南
 
-感谢你愿意改进这份笔记。优先接受这些改动：
+感谢你愿意改进这份手册。优先接受这些改动：
 
 - 纠正过时的 LangChain.js v1 API
 - 补常见坑、更好的代码示例
@@ -35,6 +35,6 @@ npm run build
 
 仓库 Settings → Pages → Source 选 **GitHub Actions**。推送到 `main` 后，workflow 会跑测试并发布到：
 
-`https://<username>.github.io/langchainjs-handbook/`
+https://2720768239.github.io/langchainjs-handbook/
 
-如果仓库名不是 `langchainjs-handbook`，同时改 `docs/.vitepress/site.ts` 里的 `REPO_NAME` 和 workflow 里的 `VP_BASE`。
+如果仓库名不是 `langchainjs-handbook`，同时改 `docs/.vitepress/site.ts` 里的 `REPO_NAME` 和 `.github/workflows/deploy.yml` 的 `VP_BASE`。

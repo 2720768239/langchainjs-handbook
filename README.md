@@ -3,7 +3,7 @@
 从第一次 `invoke()` 走到 Agentic RAG。中文手册 + 浏览器内 LeetCode 式训练场，**不需要 API Key**。
 
 <p align="center">
-  <img src="docs/public/screenshots/home.png" alt="站点首页" width="920">
+  <a href="https://2720768239.github.io/langchainjs-handbook/"><img src="docs/public/screenshots/home.png" alt="站点首页" width="920"></a>
 </p>
 
 <p align="center">
@@ -13,20 +13,11 @@
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
 </p>
 
-## 在线阅读
-
-推到 GitHub 并打开 Pages 后，站点地址是：
-
-`https://<你的用户名>.github.io/langchainjs-handbook/`
-
-本地：
-
-```bash
-npm install
-npm run dev
-```
-
-打开 http://localhost:5173/
+<p align="center">
+  <a href="https://2720768239.github.io/langchainjs-handbook/">在线阅读</a>
+  ·
+  <a href="https://2720768239.github.io/langchainjs-handbook/playground/">训练场</a>
+</p>
 
 ## 为什么做这份手册
 
@@ -63,19 +54,6 @@ npm run dev
 - 右侧：TypeScript 编辑器（自动保存在本地）
 - 下方：测试结果 + `console.log`
 - `ChatOpenAI` 是离线模拟模型，接口与真实模型对齐，所以测试可以精确断言
-
-## 发布到 GitHub Pages
-
-1. 把仓库推到 GitHub，仓库名建议为 `langchainjs-handbook`
-2. Settings → Pages → Source 选 **GitHub Actions**
-3. 推送 `main` 后，workflow 会跑 13 道练习测试并发布站点
-
-如果仓库名不同，同时改 `docs/.vitepress/site.ts` 的 `REPO_NAME` 和 `.github/workflows/deploy.yml` 的 `VP_BASE`。
-
-```bash
-npm run test:exercises   # 校验练习参考答案
-npm run build            # 静态构建
-```
 
 ## 致谢
 
