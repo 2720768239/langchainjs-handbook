@@ -21,7 +21,7 @@
 
 最后你**汇总各方结果**回复顾客。
 
-![餐厅员工类比：LLM 像经理一样生成函数调用，你的代码像专业员工一样执行](/images/04-function-calling-tools/restaurant-staff-analogy.png)
+![餐厅员工类比：LLM 像经理一样生成函数调用，你的代码像专业员工一样执行](/images/04-function-calling-tools/restaurant-staff-analogy.webp)
 
 AI 的函数调用一模一样：LLM **理解**请求、**生成**带参数的结构化函数调用、**返回**调用详情（但不执行），最后**整合**结果给出回复。执行环节始终在你的代码里。
 
@@ -33,7 +33,7 @@ AI 的函数调用一模一样：LLM **理解**请求、**生成**带参数的�
 2. **你的代码执行**：接收调用描述，真正跑函数（API 调用、计算、查库），拿到真实结果
 3. **LLM 沟通**：收到结果后，整合成自然语言回复用户
 
-![三步执行模型：LLM 规划生成调用，你的代码执行，LLM 用自然语言回复](/images/04-function-calling-tools/execution-flow.png)
+![三步执行模型：LLM 规划生成调用，你的代码执行，LLM 用自然语言回复](/images/04-function-calling-tools/execution-flow.webp)
 
 ```ts
 // 用户问："东京和巴黎的天气怎么样？"
@@ -102,7 +102,7 @@ const calculatorTool = tool(
 
 工具躺在代码里，模型并不知道它存在。`bindTools()` 负责牵线——把工具的名称、描述、Schema 告诉模型，让它在需要时生成调用。
 
-![bindTools 把工具连接到模型，使它们可供 LLM 使用](/images/04-function-calling-tools/tool-binding.png)
+![bindTools 把工具连接到模型，使它们可供 LLM 使用](/images/04-function-calling-tools/tool-binding.webp)
 
 ```ts
 import { ChatOpenAI } from "@langchain/openai";
@@ -127,12 +127,12 @@ console.log(response.tool_calls); // 结构化的调用意图在这里
 模型的回复里，`tool_calls` 数组的每一项长这样：
 
 ```ts
-{
+const toolCall = {
   name: "calculator",              // 要调用的工具名
   args: { expression: "25 * 17" }, // 模型生成的参数（符合你的 Zod Schema）
   type: "tool_call",
   id: "call_6lyhZzefMJnbOXvplEFsuSsY" // 调用 ID，回传结果时用来配对
-}
+};
 ```
 
 再强调一次：模型此刻**什么都没算**。它只是说"请帮我调 calculator，参数是 25 * 17"。
@@ -155,7 +155,7 @@ profile 还包含 `structuredOutput`、`imageInputs` 等能力标志，需要兼
 
 拿到 `tool_calls` 只是半场。要让用户得到自然语言答案，必须**执行工具并把结果回传给模型**——这就是完整的三步循环：
 
-![完整循环：用户请求 → LLM 生成调用 → 代码执行 → 结果回传 → LLM 回复](/images/04-function-calling-tools/tool-call-loop.png)
+![完整循环：用户请求 → LLM 生成调用 → 代码执行 → 结果回传 → LLM 回复](/images/04-function-calling-tools/tool-call-loop.webp)
 
 ```ts
 import { tool, HumanMessage, AIMessage, ToolMessage } from "langchain";

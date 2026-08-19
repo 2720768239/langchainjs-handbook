@@ -128,10 +128,7 @@ export const calculatorTool = tool(
         run: ({ exports, expect }) => {
           expect(exports.calculatorTool, "calculatorTool").toBeDefined();
           expect(exports.calculatorTool.name, "工具名").toBe("calculator");
-          expect(
-            (exports.calculatorTool.description ?? "").length,
-            "描述长度",
-          ).toBeGreaterThan(4);
+          expect((exports.calculatorTool.description ?? "").length, "描述长度").toBeGreaterThan(4);
         },
       },
       {
@@ -308,9 +305,7 @@ export async function runWithTools(
       if (match) {
         return {
           content: "",
-          toolCalls: [
-            { name: "calculator", args: { expression: `${match[1]} * ${match[2]}` } },
-          ],
+          toolCalls: [{ name: "calculator", args: { expression: `${match[1]} * ${match[2]}` } }],
         };
       }
       return { content: `你好！这个问题我不需要工具就能回答：${lastHuman}` };

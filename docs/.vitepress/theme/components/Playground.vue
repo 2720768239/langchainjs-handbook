@@ -34,8 +34,7 @@ function goPrev() {
   if (currentIndex.value > 0) currentId.value = flatList[currentIndex.value - 1];
 }
 function goNext() {
-  if (currentIndex.value < flatList.length - 1)
-    currentId.value = flatList[currentIndex.value + 1];
+  if (currentIndex.value < flatList.length - 1) currentId.value = flatList[currentIndex.value + 1];
 }
 
 /* ---------------- 左侧面板 ---------------- */
@@ -46,7 +45,13 @@ const revealedHints = ref(0);
 
 const descriptionHtml = computed(() => md.render(exercise.value.description));
 
-function copySolutionToEditor() {
+function loadSolutionIntoEditor() {
+  if (
+    code.value !== exercise.value.solution &&
+    !confirm("载入参考答案会替换当前编辑器内容，是否继续？")
+  ) {
+    return;
+  }
   code.value = exercise.value.solution;
   leftTab.value = "desc";
 }
@@ -204,7 +209,7 @@ const difficultyClass = computed(() => {
             :label="`第 ${group.chapter} 章 · ${group.chapterName}`"
           >
             <option v-for="item in group.items" :key="item.id" :value="item.id">
-              {{ doneSet.has(item.id) ? "✅" : "○" }} {{ item.title }}（{{ item.difficulty }}）
+              {{ doneSet.has(item.id) ? "✓" : "○" }} {{ item.title }}（{{ item.difficulty }}）
             </option>
           </optgroup>
         </select>
@@ -217,16 +222,20 @@ const difficultyClass = computed(() => {
           ›
         </button>
         <span class="pg-badge" :class="difficultyClass">{{ exercise.difficulty }}</span>
-        <a class="pg-guide-link" :href="exercise.guideLink" title="打开对应章节笔记">
-          📖 对应笔记
+        <a class="pg-guide-link" :href="exercise.guideLink" title="阅读对应章节的学习笔记">
+          阅读对应笔记
         </a>
       </div>
       <div class="pg-toolbar-group">
         <span class="pg-progress">已完成 {{ doneSet.size }}/{{ exercises.length }}</span>
-        <span class="pg-sim-hint" title="ChatOpenAI 是确定性模拟实现，API 与真实模型一致">离线模拟 · 无需 Key</span>
-        <button class="pg-btn" :disabled="running" @click="execute('run')">▶ 运行</button>
+        <span
+          class="pg-sim-hint"
+          title="模型、Embedding、MCP 与向量存储使用本地替身；真实网络和提供商行为请用仓库示例验证"
+          >本地模拟 · 无需 API Key</span
+        >
+        <button class="pg-btn" :disabled="running" @click="execute('run')">运行代码</button>
         <button class="pg-btn primary" :disabled="running" @click="execute('test')">
-          ✓ 提交测试
+          运行测试
         </button>
         <button v-if="running" class="pg-btn danger" @click="stopRun">■ 停止</button>
         <button class="pg-btn ghost" :disabled="running" title="重置为初始代码" @click="resetCode">
@@ -251,6 +260,10 @@ const difficultyClass = computed(() => {
 
         <div v-show="leftTab === 'desc'" class="pg-panel pg-desc vp-doc">
           <h2 class="pg-title">{{ exercise.title }}</h2>
+          <p class="pg-task-flow">
+            <strong>完成顺序</strong><span>读题</span><i>→</i><span>补全 TODO</span><i>→</i
+            ><span>运行代码</span><i>→</i><span>运行测试</span>
+          </p>
           <div v-html="descriptionHtml" />
           <div v-if="exercise.hints.length" class="pg-hints">
             <h4>💡 提示（卡住了再看）</h4>
@@ -273,8 +286,8 @@ const difficultyClass = computed(() => {
 
         <div v-show="leftTab === 'example'" class="pg-panel pg-code-panel">
           <div v-if="exercise.exampleCode" class="pg-example-note">
-            下列为课程同源的 <strong>API 写法示例</strong>，场景可能与本题不同；
-            判题与「参考答案」以左侧题目描述为准。想看运行效果请实现导出函数后点「▶ 运行」。
+            这是相关 API
+            的<strong>用法示例</strong>，不一定直接解答本题。请按「题目」要求实现导出函数，再用「运行代码」观察输出或用「运行测试」检查结果。
           </div>
           <div v-if="exercise.exampleCode" class="pg-code-view">
             <CodeEditor :model-value="exercise.exampleCode" readonly />
@@ -284,14 +297,12 @@ const difficultyClass = computed(() => {
 
         <div v-show="leftTab === 'solution'" class="pg-panel pg-code-panel">
           <div v-if="!solutionRevealed" class="pg-solution-gate">
-            <p>先自己试试！全部测试通过后再对照参考答案，收获最大。</p>
-            <button class="pg-btn" @click="solutionRevealed = true">我要看参考答案</button>
+            <p>建议先补全 TODO；卡住时逐条查看提示，最后再对照参考答案。</p>
+            <button class="pg-btn" @click="solutionRevealed = true">查看参考答案</button>
           </div>
           <template v-else>
             <div class="pg-solution-actions">
-              <button class="pg-btn ghost small" @click="copySolutionToEditor">
-                ⇥ 复制到编辑器
-              </button>
+              <button class="pg-btn ghost small" @click="loadSolutionIntoEditor">载入编辑器</button>
             </div>
             <div class="pg-code-view">
               <CodeEditor :model-value="exercise.solution" readonly />
@@ -341,12 +352,12 @@ const difficultyClass = computed(() => {
               <pre>{{ runError }}</pre>
             </div>
             <div v-else-if="!testResults" class="pg-empty">
-              点击右上角「✓ 提交测试」运行本题的测试用例。<br />
-              「▶ 运行」会执行题目演示（或你导出的 main），输出在「控制台」里。
+              点击右上角「运行测试」检查实现是否满足题目要求。<br />
+              「运行代码」会执行本题演示（或你导出的 main），输出显示在「控制台」。
             </div>
             <template v-else>
               <div v-if="allPassed" class="pg-all-pass">
-                🎉 恭喜，全部测试通过！去「参考答案」页对比一下不同的实现思路吧。
+                全部测试通过。你可以到「参考答案」中比较不同的实现方式。
               </div>
               <div
                 v-for="(test, i) in testResults"
@@ -382,8 +393,8 @@ const difficultyClass = computed(() => {
               <pre>{{ runError }}</pre>
             </div>
             <div v-if="!consoleLines.length && !runError" class="pg-empty">
-              暂无输出。点「▶ 运行」会自动演示本题典型输入（实现导出函数后才有结果）；
-              也可自行导出 <code>main()</code> 并用 console.log 打印。
+              暂无输出。点击「运行代码」会执行本题的典型输入；也可以导出
+              <code>main()</code>，并用 <code>console.log</code> 打印结果。
             </div>
             <div
               v-for="(line, i) in consoleLines"
@@ -649,6 +660,28 @@ const difficultyClass = computed(() => {
   font-weight: 700;
   border: none;
   padding: 0;
+}
+.pg-task-flow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 7px;
+  color: var(--vp-c-text-2);
+  background: var(--vp-c-bg-soft);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.pg-task-flow strong {
+  margin-right: 2px;
+  color: var(--vp-c-text-1);
+}
+.pg-task-flow i {
+  color: var(--vp-c-text-3);
+  font-style: normal;
 }
 .pg-desc :deep(h3) {
   margin: 18px 0 8px;

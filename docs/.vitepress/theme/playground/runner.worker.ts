@@ -43,9 +43,7 @@ async function handleRun(req: RunRequest, compiled: string) {
       // 兼容顶层 main().catch(...) 这类浮动异步
       await new Promise((r) => setTimeout(r, 400));
       if (logs.length === 0) {
-        log(
-          "没有可演示的入口。请导出 async function main()，或实现题目要求的导出函数后再次运行。",
-        );
+        log("没有可演示的入口。请导出 async function main()，或实现题目要求的导出函数后再次运行。");
       }
     }
   }

@@ -1,7 +1,7 @@
 ---
 layout: page
 pageClass: playground-page
-title: 训练场
+title: 代码训练场
 sidebar: false
 ---
 

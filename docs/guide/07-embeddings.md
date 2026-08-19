@@ -21,7 +21,7 @@
 3. **贴标签**：给每部分标注来源、类别（元数据）
 4. **智能索引**：给每个章节打上代表**含义**的「数字标签」，读者问「植物如何产生能量？」时，系统按含义匹配到光合作用章节——哪怕问句里一个原词都没出现（Embedding + 语义搜索）
 
-![智能图书馆类比：左边整理文档分块，右边按含义做语义搜索](/images/07-documents-embeddings-semantic-search/library-system-analogy.png)
+![智能图书馆类比：左边整理文档分块，右边按含义做语义搜索](/images/07-documents-embeddings-semantic-search/library-system-analogy.webp)
 
 为什么必须这么做？因为 LLM 有上下文窗口限制，一次只能处理有限的文本。文档处理负责把内容准备好，语义搜索负责按*含义*（而不是关键词）找到需要的那部分。
 
@@ -59,7 +59,7 @@ console.log(docs[0].metadata);      // { source: './data/sample.txt' }
 
 完整列表见[文档加载器集成](https://docs.langchain.com/oss/javascript/integrations/document_loaders)。选型原则：**先统一成 `Document`，再谈分块。**
 
-![文档处理流水线：加载 → 分块 → Embedding → 向量存储 → 语义搜索](/images/07-documents-embeddings-semantic-search/document-processing-pipeline.png)
+![文档处理流水线：加载 → 分块 → Embedding → 向量存储 → 语义搜索](/images/07-documents-embeddings-semantic-search/document-processing-pipeline.webp)
 
 ## 文本分块：chunkSize 与 chunkOverlap
 
@@ -140,7 +140,7 @@ const splitDocs = await splitter.splitDocuments([doc]);
 
 "dog" 和 "cat" 的向量很接近（都是动物、宠物），"pizza" 则离它们很远。可以把 1536 维向量想象成语义空间中的坐标——类似（经度, 纬度），只是维度多得多。
 
-![Embedding 可视化：相似含义的词聚在一起，无关概念相距遥远](/images/07-documents-embeddings-semantic-search/embeddings-visualization.png)
+![Embedding 可视化：相似含义的词聚在一起，无关概念相距遥远](/images/07-documents-embeddings-semantic-search/embeddings-visualization.webp)
 
 ```ts
 import { OpenAIEmbeddings } from "@langchain/openai";
@@ -212,7 +212,7 @@ const results = await vectorStore.similaritySearch("animals that live indoors", 
 
 注意这个结果的精妙之处：**没有任何文档包含 "indoors" 或 "animals" 这两个词**，但语义搜索理解「水族箱里的鱼 → 室内」「打盹的猫 → 通常在室内」，而「自由飞翔的鸟」「玩接飞盘的狗」偏向室外。关键词搜索在这里会一无所获。
 
-![关键词搜索只认字面匹配，语义搜索理解含义](/images/07-documents-embeddings-semantic-search/semantic-search-comparison.png)
+![关键词搜索只认字面匹配，语义搜索理解含义](/images/07-documents-embeddings-semantic-search/semantic-search-comparison.webp)
 
 ::: tip 从 MemoryVectorStore 迁到生产
 `MemoryVectorStore` 进程一关数据就没了。接口是统一的：`fromDocuments` / `similaritySearch` / `asRetriever`，换存储通常只改导入和连接参数。常见选择：[Chroma](https://docs.langchain.com/oss/javascript/integrations/vectorstores)（本地）、Pinecone / Qdrant / Weaviate（云）。同一套知识库不要混用不同 Embedding 模型——向量空间不兼容。

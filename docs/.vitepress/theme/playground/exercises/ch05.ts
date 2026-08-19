@@ -330,9 +330,7 @@ export async function chat(threadId: string, question: string): Promise<string> 
           const t = textOf(m.content);
           return t.includes("我叫小明");
         });
-        return remembered
-          ? { content: "你叫小明。" }
-          : { content: "我还不知道你的名字。" };
+        return remembered ? { content: "你叫小明。" } : { content: "我还不知道你的名字。" };
       }
       if (lastHuman.includes("我叫")) {
         return { content: "好的，我记住了。" };
@@ -515,7 +513,7 @@ export async function collectToolNames(question: string): Promise<string[]> {
 `,
     hints: [
       "stream() 返回的是异步可迭代对象：for await (const chunk of stream)。",
-      "streamMode: \"updates\" 时，模型节点的增量在 chunk.model.messages。",
+      'streamMode: "updates" 时，模型节点的增量在 chunk.model.messages。',
       "tool_calls 可能是 undefined，用 ?? [] 再遍历。",
     ],
     modelBehavior: ({ lastHuman, lastToolResults }) => {

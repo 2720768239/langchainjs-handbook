@@ -31,8 +31,8 @@ await askModel("什么是 LangChain？");
 \`\`\`
 
 > 💡 训练场中的 \`ChatOpenAI\` 是**离线确定性模拟模型**，无需 API Key。
-> 它的 API（\`invoke\` / \`stream\` / \`bindTools\`…）与真实模型完全一致，
-> 回复内容是可预测的，因此测试可以精确断言。
+> 它保留本课程用到的 \`invoke\`、\`stream\`、\`bindTools\` 等调用方式，
+> 但回复内容、延迟和网络行为都是模拟的，因此可以稳定判题，不能代替真实模型验证。
 `,
     starterCode: `import { ChatOpenAI } from "@langchain/openai";
 

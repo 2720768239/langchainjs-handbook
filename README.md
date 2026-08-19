@@ -1,10 +1,27 @@
 # LangChain.js 手册
 
-从第一次 `invoke()` 走到 Agentic RAG。中文手册 + 浏览器内 LeetCode 式训练场，**不需要 API Key**。
+从第一次 `invoke()` 走到 Agentic RAG。浏览器训练场**不需要 API Key**，仓库同时提供使用真实 SDK 的可运行示例。
 
 <p align="center">
-  <a href="https://2720768239.github.io/langchainjs-handbook/"><img src="docs/public/screenshots/home.png" alt="站点首页" width="920"></a>
+  <a href="https://2720768239.github.io/langchainjs-handbook/"><img src="docs/public/screenshots/home.webp" alt="站点首页" width="920"></a>
 </p>
+
+## 两种开始方式
+
+### 浏览器训练：零配置
+
+直接打开[训练场](https://2720768239.github.io/langchainjs-handbook/playground/)。模型、Embedding 与 MCP 连接使用确定性替身，适合学习 API 和稳定判题，不会消耗模型额度。
+
+### 本地示例：真实 SDK
+
+```bash
+git clone https://github.com/2720768239/langchainjs-handbook.git
+cd langchainjs-handbook
+npm ci
+npm run test:samples
+```
+
+MCP 和本地 RAG 示例无需密钥；真实模型示例需要把 `.env.example` 复制为 `.env` 并填写提供商配置。完整命令见 [`examples/`](examples/README.md)，运行边界见[版本兼容说明](https://2720768239.github.io/langchainjs-handbook/compatibility)。
 
 <p align="center">
   <img src="https://img.shields.io/badge/VitePress-1.6-646cff?logo=vite&logoColor=white" alt="VitePress">
@@ -29,7 +46,7 @@
 2. **浏览器内训练场** —— 确定性模拟模型 + 真实 `@langchain/core` API，提交即判题
 
 <p align="center">
-  <img src="docs/public/screenshots/playground.png" alt="训练场：左侧题目，右侧编辑器，下方测试结果" width="920">
+  <img src="docs/public/screenshots/playground.webp" alt="训练场：左侧题目，右侧编辑器，下方测试结果" width="920">
 </p>
 
 ## 你将学到什么
@@ -53,7 +70,8 @@
 - 左侧：题目 / 示例代码 / 参考答案
 - 右侧：TypeScript 编辑器（自动保存在本地）
 - 下方：测试结果 + `console.log`
-- `ChatOpenAI` 是离线模拟模型，接口与真实模型对齐，所以测试可以精确断言
+- `ChatOpenAI` 是离线模拟模型，在课程覆盖范围内对齐真实 API，因此测试可以精确断言
+- 提供商差异、网络错误、计费和完整 SDK 行为必须用 `examples/` 中的真实示例验证
 
 ## 致谢
 

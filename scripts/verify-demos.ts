@@ -2,7 +2,11 @@
  * 校验每道练习的 demo 对参考答案能打出可见输出。
  */
 import { exercises } from "../docs/.vitepress/theme/playground/exercises";
-import { compile, executeModule, makeCollectingConsole } from "../docs/.vitepress/theme/playground/execute";
+import {
+  compile,
+  executeModule,
+  makeCollectingConsole,
+} from "../docs/.vitepress/theme/playground/execute";
 import { resetSandbox } from "../docs/.vitepress/theme/playground/sandbox/state";
 
 async function main() {

@@ -160,9 +160,7 @@ export class FakeChatModel extends BaseChatModel {
           : [input];
       // 直接走行为脚本：优先 structured 字段，其次尝试把 content 当 JSON 解析
       const lastHuman =
-        typeof input === "string"
-          ? input
-          : textOf(messages[messages.length - 1] as BaseMessage);
+        typeof input === "string" ? input : textOf(messages[messages.length - 1] as BaseMessage);
       const behavior = getBehavior();
       const turn =
         behavior?.({

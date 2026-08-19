@@ -1,16 +1,21 @@
 # 00. 环境搭建
 
-> 🎯 用约 15 分钟准备好开发环境：Node.js、免费的 AI 模型访问凭证、`.env` 配置，跑通第一个连通性测试。
+> 🎯 可选进阶：用约 15 分钟准备真实模型环境。只使用浏览器训练场时，可以跳过本章。
 
 ::: tip 本章速览
-- 安装 Node.js **22+（LTS）** 与 `tsx`，直接运行 TypeScript 文件（LangChain.js v1 官方也要求 22+）
+- 浏览器训练场无需安装、无需 API Key；本章只服务于真实 SDK 示例
+- 本仓库统一使用 Node.js **22+（LTS）** 作为验证基线
 - 用 GitHub Personal Access Token 免费调用 GitHub Models（无需信用卡）
 - 三个核心环境变量：`AI_API_KEY` / `AI_ENDPOINT` / `AI_MODEL`；第 07、08 章再加 `AI_EMBEDDING_MODEL`
 - 可选：Microsoft Foundry、OpenAI、Anthropic、Ollama 等其他提供商
 - 换提供商只改 `.env`，代码零改动
 :::
 
-就像做木工前要先布置好工作台，写 AI 应用前也要先准备好「工作坊」。整个过程只需要一次，之后所有章节共用这套环境。
+::: tip 先确认你是否需要本章
+只想阅读手册和完成练习？直接进入[训练场](/playground/)。只有要运行 `examples/real-model/`、观察真实网络和提供商行为时，才需要继续配置。
+:::
+
+就像做木工前要先布置好工作台，运行真实 AI 应用前也要准备好「工作坊」。整个过程只需要一次。
 
 ## 前置要求
 
@@ -18,9 +23,9 @@
 - 基本的命令行操作能力
 - 任意代码编辑器（推荐 [VS Code](https://code.visualstudio.com/)）
 
-## Step 1：安装 Node.js 与 tsx
+## Step 1：安装 Node.js 并克隆本仓库
 
-课程代码需要 **Node.js 22+（LTS）**。先检查是否已安装：
+本仓库以 **Node.js 22+（LTS）** 为统一验证环境。先检查是否已安装：
 
 ```bash
 node --version   # 应显示 v22.x 或更高
@@ -29,15 +34,13 @@ npm --version
 
 没装的话去 [nodejs.org](https://nodejs.org/) 下载 LTS 版本即可（稳定、有安全更新、生产可用）。
 
-然后克隆课程仓库并安装依赖：
+然后克隆本仓库并安装依赖：
 
 ```bash
-git clone https://github.com/microsoft/langchainjs-for-beginners
-cd langchainjs-for-beginners
-npm install
-
-# 全局安装 tsx，直接运行 .ts 文件
-npm install -g tsx
+git clone https://github.com/2720768239/langchainjs-handbook.git
+cd langchainjs-handbook
+npm ci
+npm run test:samples
 ```
 
 依赖里的核心包：
@@ -48,24 +51,9 @@ npm install -g tsx
 | `@langchain/core` | 核心抽象层 |
 | `@langchain/openai` | OpenAI 兼容模型集成（全课程通用） |
 | `dotenv` | 从 `.env` 加载环境变量 |
+| `@modelcontextprotocol/server` | MCP v2 服务器 API |
 
-::: details 为什么用 tsx？
-`tsx` 让你跳过编译步骤直接运行 TypeScript：
-
-```bash
-# 不用 tsx：先编译再运行
-tsc myfile.ts && node myfile.js
-
-# 用 tsx：一步到位
-tsx myfile.ts
-```
-
-整个课程的示例都用 `tsx 文件名.ts` 来运行。
-:::
-
-::: tip 不想折腾本地环境？
-可以用 **GitHub Codespaces**：打开 [课程仓库](https://github.com/microsoft/langchainjs-for-beginners)，点绿色 "Code" 按钮 → "Open with Codespaces" → "New codespace"，浏览器里就有一套现成的云端开发环境。
-:::
+`tsx` 已作为项目依赖安装，由 `npm run example:*` 脚本调用，不需要全局安装。
 
 ## Step 2：免费获取 GitHub Models Token
 
@@ -99,7 +87,7 @@ Copy-Item .env.example .env
 ```bash
 AI_API_KEY=ghp_你的GitHub Token
 AI_ENDPOINT=https://models.github.ai/inference
-AI_MODEL=openai/gpt-5-mini
+AI_MODEL=openai/gpt-4.1-mini
 AI_EMBEDDING_MODEL=openai/text-embedding-3-small
 ```
 
@@ -118,21 +106,16 @@ AI_EMBEDDING_MODEL=openai/text-embedding-3-small
 
 ## Step 4：验证环境
 
-在项目根目录运行测试脚本：
+在项目根目录运行真实模型示例：
 
 ```bash
-tsx scripts/test-setup.ts
+npm run example:first-call
 ```
 
 看到类似输出就说明一切就绪：
 
 ```
-🚀 Testing AI provider connection...
-
-✅ SUCCESS! Your AI provider is working!
-Model response: Setup successful!
-
-🎉 You're ready to start the course!
+LangChain.js 是一个帮助开发者组合模型、工具与 Agent 工作流的 TypeScript 框架。
 ```
 
 ## 可选：其他 AI 提供商
@@ -200,7 +183,7 @@ LANGSMITH_API_KEY=你的_LangSmith_Key
 - GitHub Models 免费、无需信用卡，创建 Token 时不用勾任何权限
 - `.env` 三件套：`AI_API_KEY` / `AI_ENDPOINT` / `AI_MODEL`（语义搜索再加 `AI_EMBEDDING_MODEL`）
 - 提供商抽象是 LangChain.js 的核心卖点：换供应商 = 改 `.env`
-- 动手前先跑 `tsx scripts/test-setup.ts` 验证连通性
+- 动手前先跑 `npm run test:samples` 验证本地示例，再用 `npm run example:first-call` 验证真实模型连通性
 
 ## 📚 延伸阅读
 

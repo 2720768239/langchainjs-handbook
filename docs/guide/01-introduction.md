@@ -23,7 +23,7 @@
 | 📋 施工图纸 | 常见 AI 应用的设计模式 |
 | 🔄 标准化零件 | 可自由组合的组件（Composability） |
 
-![五金店类比：LangChain.js 为 AI 开发提供预制组件和统一抽象](/images/01-introduction/hardware-store-analogy.png)
+![五金店类比：LangChain.js 为 AI 开发提供预制组件和统一抽象](/images/01-introduction/hardware-store-analogy.webp)
 
 没有框架时你需要自己做的事：给每个 LLM 提供商（OpenAI、Anthropic、Azure……）写不同的对接代码、自建提示词管理、手写函数调用逻辑、从零实现对话记忆和 Agent 结构。LangChain.js 把这些全部标准化了，你只需专注业务逻辑。
 
@@ -78,7 +78,7 @@ main().catch(console.error);
 powered by large language models (LLMs).
 ```
 
-![第一次 LLM 调用的完整流程：从创建模型实例到收到响应](/images/01-introduction/first-llm-call-flow.png)
+![第一次 LLM 调用的完整流程：从创建模型实例到收到响应](/images/01-introduction/first-llm-call-flow.webp)
 
 ### ChatOpenAI 的三个关键配置
 
@@ -125,7 +125,7 @@ console.log(response.content);
 
 `SystemMessage` 让 AI「用简单的方式解释」，于是回复会自动变成适合 10 岁小孩的语言——比如把量子计算机比喻成「能同时尝试很多种拼图解法的魔法盒子」。
 
-![SystemMessage、HumanMessage 与 AIMessage 在对话中的协作方式](/images/01-introduction/message-types-flow.png)
+![SystemMessage、HumanMessage 与 AIMessage 在对话中的协作方式](/images/01-introduction/message-types-flow.webp)
 
 **为什么用消息而不是纯字符串？**
 

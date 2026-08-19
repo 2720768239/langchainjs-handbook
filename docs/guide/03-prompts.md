@@ -19,7 +19,7 @@
 | **消息（Messages）** | Agent、动态工作流、多步推理、工具集成 | 第 05 章 Agent |
 | **模板（Templates）** | 可复用提示词、变量替换、格式一致性、Few-shot | 第 07 章 RAG 系统 |
 
-![消息与模板的选择：消息用于 Agent 和动态工作流，模板用于 RAG 和可复用提示词](/images/03-prompts-messages-outputs/messages-vs-templates.png)
+![消息与模板的选择：消息用于 Agent 和动态工作流，模板用于 RAG 和可复用提示词](/images/03-prompts-messages-outputs/messages-vs-templates.webp)
 
 两种方式并排对比一下，就能看到差别在哪：
 
@@ -124,7 +124,7 @@ await model.invoke("Hello!"); // 等价于 invoke(new HumanMessage("Hello!"))
 
 提示词模板就像邮件合并（mail merge）：不必给每位客户手写一封信，而是写一份带 `{name}`、`{orderId}` 占位符的模板，发送时逐个填值。一次创建、随处复用，改一处即可影响所有调用。
 
-![邮件合并类比：模板使用占位符，运行时替换为实际值](/images/03-prompts-messages-outputs/mail-merge-analogy.png)
+![邮件合并类比：模板使用占位符，运行时替换为实际值](/images/03-prompts-messages-outputs/mail-merge-analogy.webp)
 
 ### ChatPromptTemplate 基础
 
@@ -192,7 +192,7 @@ const result = await model.invoke(prompt);
 
 Few-shot 提示（few-shot prompting）就是培训新员工：与其写一大段规章制度，不如直接给几个"优秀作业范例"。对于输出格式类需求，几个示例往往比复杂指令更可靠。
 
-![Few-shot 学习：提供示例教会 AI 模式，AI 再应用到新输入](/images/03-prompts-messages-outputs/few-shot-prompting.png)
+![Few-shot 学习：提供示例教会 AI 模式，AI 再应用到新输入](/images/03-prompts-messages-outputs/few-shot-prompting.webp)
 
 ```ts
 import { ChatPromptTemplate, FewShotChatMessagePromptTemplate } from "@langchain/core/prompts";
@@ -270,7 +270,7 @@ await chain.invoke({
 
 解决方案：用 [Zod](https://zod.dev/)（TypeScript 优先的 Schema 验证库）定义你想要的结构，再用 `.withStructuredOutput()` 让模型直接按结构返回。
 
-![结构化输出：用 Zod Schema 将非结构化文本转换为类型安全的 JSON](/images/03-prompts-messages-outputs/structured-output.png)
+![结构化输出：用 Zod Schema 将非结构化文本转换为类型安全的 JSON](/images/03-prompts-messages-outputs/structured-output.webp)
 
 ```ts
 import { ChatOpenAI } from "@langchain/openai";

@@ -19,14 +19,7 @@ import {
 import { tool } from "@langchain/core/tools";
 import { FakeChatModel } from "./fake-chat-model";
 
-export {
-  AIMessage,
-  HumanMessage,
-  SystemMessage,
-  ToolMessage,
-  isAIMessage,
-  tool,
-};
+export { AIMessage, HumanMessage, SystemMessage, ToolMessage, isAIMessage, tool };
 
 const MAX_ITERATIONS = 8;
 
@@ -123,9 +116,7 @@ export function createAgent(options: CreateAgentOptions) {
   }
 
   const runner =
-    tools.length > 0 && typeof model.bindTools === "function"
-      ? model.bindTools(tools)
-      : model;
+    tools.length > 0 && typeof model.bindTools === "function" ? model.bindTools(tools) : model;
 
   async function* stepLoop(input: AgentInput, config?: AgentConfig) {
     const threadId = config?.configurable?.thread_id;

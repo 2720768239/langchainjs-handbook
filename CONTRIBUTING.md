@@ -10,16 +10,18 @@
 ## 本地开发
 
 ```bash
-npm install
+npm ci
 npm run dev
 ```
 
 打开 http://localhost:5173/
 
 ```bash
-npm run test:exercises   # 15 道练习的参考答案必须全过
-npm run build
+npm run check            # 类型、Lint、格式、链接、代码片段和全部测试
+npm run ci               # 完整检查 + 生产构建 + 产物体积预算
 ```
+
+排查单项问题时可运行 `npm run lint`、`npm run check:links`、`npm run check:snippets`、`npm run test:samples`、`npm run test:exercises` 或 `npm run test:demos`。提交前可用 `npm run format` 统一 TypeScript、Vue、CSS、JSON 与 YAML 格式。
 
 ## 目录约定
 
@@ -27,9 +29,12 @@ npm run build
 |------|------|
 | `docs/guide/` | 章节笔记 |
 | `docs/.vitepress/theme/playground/exercises/` | 训练场题目 |
-| `docs/public/images/` | 章节示意图（来自原课程 MIT 仓库，路径与笔记中 `/images/...` 对应） |
+| `docs/public/images/` | WebP 章节示意图（路径与笔记中 `/images/...` 对应） |
+| `examples/` | 使用真实 LangChain.js / MCP SDK 的可运行示例 |
 
-新增练习时，同步改章节末尾的「动手练习」链接和学习路线图表格。
+新增练习时，同步改章节末尾的「动手练习」链接和学习路线图表格。修改真实示例或依赖时，也要更新[版本兼容与运行边界](docs/compatibility.md)。
+
+新增 PNG/JPEG 后运行 `npm run optimize:images` 转换并更新引用。构建产物必须保持在 8 MB 内，单个图片不超过 100 KB；预算由 `npm run check:bundle` 验证。
 
 ## GitHub Pages
 

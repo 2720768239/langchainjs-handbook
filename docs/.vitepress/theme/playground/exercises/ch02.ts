@@ -1,4 +1,4 @@
-import { AIMessage, HumanMessage, isAIMessage, isHumanMessage } from "@langchain/core/messages";
+import { isAIMessage, isHumanMessage } from "@langchain/core/messages";
 import { FakeChatModel } from "../sandbox/fake-chat-model";
 import type { Exercise } from "../types";
 
@@ -272,9 +272,7 @@ export async function streamStory(
         name: "onChunk 被多次调用（真正的流式，而不是一次性返回）",
         run: async ({ exports, expect }) => {
           const pieces: string[] = [];
-          await exports.streamStory(new FakeChatModel(), "程序员", (p: string) =>
-            pieces.push(p),
-          );
+          await exports.streamStory(new FakeChatModel(), "程序员", (p: string) => pieces.push(p));
           expect(pieces.length, "onChunk 调用次数").toBeGreaterThan(5);
         },
       },

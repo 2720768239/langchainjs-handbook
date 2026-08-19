@@ -11,5 +11,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["scripts/**/*.ts", "docs/.vitepress/**/*.ts"]
+  "include": ["scripts/**/*.ts", "examples/**/*.ts", "docs/.vitepress/**/*.ts"]
 }

@@ -8,7 +8,7 @@
 - `MultiServerMCPClient.getTools()` 拿到工具后，照旧喂给 `createAgent()`——模式完全不变
 - 一个客户端可同时连接多个 MCP 服务器，Agent 自动路由到正确工具
 - 生产环境必备：`withRetry()` 重试、超时控制、`finally` 中关闭连接
-- 用 `@modelcontextprotocol/sdk` 几十行代码就能写出自己的 MCP 服务器
+- 用 MCP TypeScript SDK v2 几十行代码就能写出自己的 MCP 服务器
 :::
 
 ## 为什么需要 MCP：USB-C 类比
@@ -17,7 +17,7 @@
 
 这就像 USB-C 出现之前的笔记本电脑：HDMI、DisplayPort、USB-A、网口、电源口各占一个位置，每种设备还要装专属驱动。而 USB-C 用**一个通用接口 + 一套标准协议**解决了所有问题。
 
-![MCP 就像 AI 应用的 USB-C 接口](/images/06-mcp/usb-c-analogy.png)
+![MCP 就像 AI 应用的 USB-C 接口](/images/06-mcp/usb-c-analogy.webp)
 
 **MCP（Model Context Protocol，模型上下文协议）** 就是 AI 应用的 USB-C：一个开放标准，让服务通过统一协议暴露自己的能力。你的 Agent 连接一次，就能使用对方的全部工具。
 
@@ -29,7 +29,7 @@
 
 **关键洞察**：第 05 章你构建的是工具的*实现*；本章你连接的是工具的*提供商*。`createAgent()` 的用法一模一样，变的只是工具来源。
 
-![MCP 架构：Agent 通过 MCP 客户端连接多个服务器](/images/06-mcp/mcp-architecture.png)
+![MCP 架构：Agent 通过 MCP 客户端连接多个服务器](/images/06-mcp/mcp-architecture.webp)
 
 ## 两种传输方式：HTTP vs stdio
 
@@ -40,7 +40,7 @@ MCP 规范定义了两种标准的客户端-服务器通信机制：
 | **Streamable HTTP** | 走网络（客户端 → 服务器） | 服务器有 URL 可访问（本地或远程 Web 服务） | `{ transport: "http", url: "https://.../mcp" }` |
 | **stdio** | 走进程（父子进程通过 stdin/stdout 流） | 服务器作为应用的子进程运行 | `{ transport: "stdio", command: "npx", args: [...] }` |
 
-![HTTP 传输走网络，stdio 传输走进程流](/images/06-mcp/http-stdio-comparison.png)
+![HTTP 传输走网络，stdio 传输走进程流](/images/06-mcp/http-stdio-comparison.webp)
 
 一句话区分：**HTTP = 调用一个 Web API；stdio = 启动一个程序并和它对话**。HTTP 服务器独立运行、生命周期与客户端无关；stdio 服务器由客户端启动和管理，客户端退出它也随之结束。
 
@@ -159,7 +159,7 @@ const agent = createAgent({ model, tools });
 // 问 "What is React? Get docs."  → Agent 自动用 Context7
 ```
 
-![一个 Agent 同时连接文档、计算、GitHub、文件系统等多个 MCP 服务器](/images/06-mcp/multi-server-pattern.png)
+![一个 Agent 同时连接文档、计算、GitHub、文件系统等多个 MCP 服务器](/images/06-mcp/multi-server-pattern.webp)
 
 这个模式的价值在于：**扩展到数十个服务器都无需改动 Agent 代码**。真实场景比如 GitHub（代码）+ 日历（日程）+ 数据库（数据查询）+ 内部工具，统统挂在一个 Agent 上。
 
@@ -196,54 +196,36 @@ const response = await Promise.race([
 
 ## 写一个自己的 MCP 服务器
 
-用官方 `@modelcontextprotocol/sdk` 就能把公司内部工具、现有 API 包装成任何 MCP 客户端都能连的标准服务器。核心只有三件事：**声明能力、列出工具、处理调用**。
+用官方 MCP TypeScript SDK v2 就能把公司内部工具、现有 API 包装成任何 MCP 客户端都能连接的标准服务器。v2 将服务端拆为 `@modelcontextprotocol/server`，Node.js HTTP 适配放在 `@modelcontextprotocol/node`。
 
-以下是课程中 stdio 计算器服务器的完整骨架（`stdio-calculator-server.ts`）：
+以下是 stdio 计算器服务器的完整骨架：
 
 ```ts
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  ListToolsRequestSchema,
-  CallToolRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
+import { McpServer } from "@modelcontextprotocol/server";
+import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import { evaluate } from "mathjs";
+import * as z from "zod/v4";
 
-// 1. 创建服务器，声明具备 tools 能力
-const mcpServer = new Server(
-  { name: "stdio-calculator", version: "1.0.0" },
-  { capabilities: { tools: {} } }
-);
-
-// 2. 响应「列出工具」请求——客户端 getTools() 时拿到的就是这些
-mcpServer.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [
-    {
-      name: "calculate",
-      description: "Perform mathematical calculations using mathjs",
-      inputSchema: {
-        type: "object",
-        properties: {
-          expression: { type: "string", description: "如 '2 + 2'、'sqrt(16)'" },
-        },
-        required: ["expression"],
-      },
-    },
-  ],
-}));
-
-// 3. 响应「调用工具」请求——真正执行逻辑的地方
-mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-  if (name === "calculate") {
-    const { expression } = args as { expression: string };
-    const result = evaluate(expression);
-    return { content: [{ type: "text", text: `${expression} = ${result}` }] };
-  }
-  throw new Error(`Unknown tool: ${name}`);
+const mcpServer = new McpServer({
+  name: "stdio-calculator",
+  version: "1.0.0",
 });
 
-// 4. 挂上 stdio 传输，开始监听
+mcpServer.registerTool(
+  "calculate",
+  {
+    description: "Perform mathematical calculations using mathjs",
+    inputSchema: z.object({
+      expression: z.string().describe("如 '2 + 2'、'sqrt(16)'"),
+    }),
+  },
+  async ({ expression }) => ({
+    content: [
+      { type: "text", text: `${expression} = ${evaluate(expression)}` },
+    ],
+  }),
+);
+
 const transport = new StdioServerTransport();
 await mcpServer.connect(transport);
 
@@ -252,7 +234,15 @@ console.error("📟 stdio MCP Calculator Server running...");
 ```
 
 ::: details 想暴露成 HTTP 服务？
-把 `StdioServerTransport` 换成 `StreamableHTTPServerTransport`，再配一个 Express 服务器处理 HTTP 端点即可。课程的 `samples/basic-mcp-server.ts` 提供了包含会话管理、优雅关闭的生产级实现，客户端用 `{ transport: "http", url: "http://localhost:3000/mcp" }` 连接。
+运行仓库中的 [`examples/basic-mcp-server.ts`](https://github.com/2720768239/langchainjs-handbook/blob/main/examples/basic-mcp-server.ts)：
+
+```bash
+npm run example:mcp
+# 另开一个终端
+npm run example:mcp:client
+```
+
+它使用 v2 的 `createMcpHandler()`、Streamable HTTP、优雅关闭，以及 localhost Host/Origin 校验；客户端通过真实 `@langchain/mcp-adapters` 连接 `http://127.0.0.1:3000/mcp`。
 :::
 
 服务器端最佳实践：工具名称和描述要具体清晰（Agent 靠描述决定何时调用）、用 JSON Schema 校验输入、错误信息要有用、支持优雅关闭。

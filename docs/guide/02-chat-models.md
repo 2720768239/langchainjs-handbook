@@ -17,7 +17,7 @@
 
 Chat 模型的工作方式一模一样——本章逐一拆解这五种能力。
 
-![知识渊博的朋友类比：Chat 模型像朋友一样进行有上下文、可调节的对话](/images/02-chat-models/knowledgeable-friend-analogy.png)
+![知识渊博的朋友类比：Chat 模型像朋友一样进行有上下文、可调节的对话](/images/02-chat-models/knowledgeable-friend-analogy.webp)
 
 ## 多轮对话：历史管理
 
@@ -25,7 +25,7 @@ Chat 模型的工作方式一模一样——本章逐一拆解这五种能力。
 
 Chat 模型**不会真的「记住」**之前的消息。所谓上下文，是你在每次请求时把**整个对话历史**重新发一遍——相当于每次都把完整的聊天记录摊在 AI 面前。
 
-![消息数组随对话轮次不断增长，每次 invoke() 都发送完整历史](/images/02-chat-models/conversation-history-flow.png)
+![消息数组随对话轮次不断增长，每次 invoke() 都发送完整历史](/images/02-chat-models/conversation-history-flow.webp)
 
 ### 三种消息类型回顾
 
@@ -89,7 +89,7 @@ console.log(`📊 历史中共 ${messages.length} 条消息`); // 6 条
 
 问复杂问题时，等 5~10 秒才看到完整回复的体验很糟。**流式输出（Streaming）**让文字像 ChatGPT 那样逐词出现——就像朋友边想边说，而不是憋完一整段才开口。
 
-![流式与非流式对比：非流式等待后一次性显示，流式渐进呈现体验更好](/images/02-chat-models/streaming-comparison.png)
+![流式与非流式对比：非流式等待后一次性显示，流式渐进呈现体验更好](/images/02-chat-models/streaming-comparison.webp)
 
 把 `invoke()` 换成 `stream()` 即可：
 
@@ -176,7 +176,7 @@ for (const temp of [0, 1, 2]) {
 
 先理解 **token**：它是模型处理文本的基本单位，可以理解为「词的碎片」——大约 1 token ≈ 4 个字符 ≈ ¾ 个英文单词，"Hello world!" 约 3 个 token。
 
-![文本被切分为 token 的可视化：拼图的每一块代表一个 token](/images/02-chat-models/tokenization-puzzle.png)
+![文本被切分为 token 的可视化：拼图的每一块代表一个 token](/images/02-chat-models/tokenization-puzzle.webp)
 
 ```ts
 const model = new ChatOpenAI({

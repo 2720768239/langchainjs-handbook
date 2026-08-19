@@ -77,8 +77,7 @@ export function createExpect(): ExpectFn {
       },
       toContain(needle) {
         if (typeof actual === "string") {
-          if (!actual.includes(String(needle)))
-            fail(`期望字符串包含 ${fmt(needle, 1)}`, needle);
+          if (!actual.includes(String(needle))) fail(`期望字符串包含 ${fmt(needle, 1)}`, needle);
         } else if (Array.isArray(actual)) {
           if (!actual.some((item) => deepEqual(item, needle)))
             fail(`期望数组包含 ${fmt(needle, 1)}`, needle);

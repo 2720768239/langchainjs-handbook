@@ -18,7 +18,7 @@
 2. **做**：请数据分析师取数 → 看结果 → 再请会计计算
 3. **答**：把结果告诉提问的人
 
-![项目经理与专家团队 vs AI Agent 与工具：两者遵循相同的委派迭代模式](/images/05-agents/manager-specialists-analogy.png)
+![项目经理与专家团队 vs AI Agent 与工具：两者遵循相同的委派迭代模式](/images/05-agents/manager-specialists-analogy.webp)
 
 Agent 一模一样。同一句「巴黎现在天气如何？」：
 
@@ -28,7 +28,7 @@ Agent：   思考 → getWeather({ city: "Paris" }) → 观察 "18°C"
           → "巴黎现在 18°C，少云。"
 ```
 
-![标准 LLM 局限于训练数据，带工具的 Agent 可以访问实时数据并采取行动](/images/05-agents/llm-vs-agent.png)
+![标准 LLM 局限于训练数据，带工具的 Agent 可以访问实时数据并采取行动](/images/05-agents/llm-vs-agent.webp)
 
 这个「思考 → 行动 → 观察 → 重复 → 作答」的循环叫 **ReAct**（Reasoning + Acting）。多步任务长这样：
 
@@ -40,7 +40,7 @@ Thought 2 → isPrime(425)          → 不是（能被 5 整除）
 Final Answer: 425，不是质数。
 ```
 
-![ReAct 模式流程：Agent 迭代地推理、行动、观察，直到得出答案](/images/05-agents/react-pattern-flow.png)
+![ReAct 模式流程：Agent 迭代地推理、行动、观察，直到得出答案](/images/05-agents/react-pattern-flow.webp)
 
 和第 04 章「手动调一次工具」的差别：用哪个工具、循环几轮，由 Agent 自己决定。
 
@@ -160,7 +160,7 @@ for (const query of queries) {
 
 选择依据是工具的 **名称 + 描述** 和问题的语义匹配——第 04 章「把描述写具体」在这里更重要。
 
-![Agent 根据查询与工具描述的语义匹配智能选择工具](/images/05-agents/tool-selection-logic.png)
+![Agent 根据查询与工具描述的语义匹配智能选择工具](/images/05-agents/tool-selection-logic.webp)
 
 ## 短时记忆：checkpointer + thread_id
 

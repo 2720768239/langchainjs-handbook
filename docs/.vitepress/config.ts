@@ -1,15 +1,16 @@
-import { defineConfig } from "vitepress";
+import { defineConfig, type HeadConfig } from "vitepress";
 import fs from "node:fs";
 import path from "node:path";
-import {
-  base,
-  githubRepo,
-  pagesUrl,
-  siteDescription,
-  siteName,
-} from "./site";
+import { base, githubRepo, pagesUrl, siteDescription, siteName } from "./site";
 
-const ogImage = pagesUrl ? `${pagesUrl.replace(/\/$/, "")}/og.png` : undefined;
+const ogImage = pagesUrl ? `${pagesUrl.replace(/\/$/, "")}/og.webp` : undefined;
+const socialImageHead: HeadConfig[] = ogImage
+  ? [
+      ["meta", { property: "og:url", content: pagesUrl }],
+      ["meta", { property: "og:image", content: ogImage }],
+      ["meta", { name: "twitter:image", content: ogImage }],
+    ]
+  : [];
 
 export default defineConfig({
   lang: "zh-CN",
@@ -32,16 +33,11 @@ export default defineConfig({
     ["meta", { name: "twitter:card", content: "summary_large_image" }],
     ["meta", { name: "twitter:title", content: siteName }],
     ["meta", { name: "twitter:description", content: siteDescription }],
-    ...(ogImage
-      ? ([
-          ["meta", { property: "og:url", content: pagesUrl }],
-          ["meta", { property: "og:image", content: ogImage }],
-          ["meta", { name: "twitter:image", content: ogImage }],
-        ] as const)
-      : []),
+    ...socialImageHead,
   ],
 
   vite: {
+    server: { host: "127.0.0.1" },
     worker: { format: "es" },
     optimizeDeps: {
       include: ["sucrase", "markdown-it"],
@@ -76,9 +72,10 @@ export default defineConfig({
     logo: "/logo.svg",
 
     nav: [
-      { text: "笔记", link: "/guide/", activeMatch: "/guide/" },
-      { text: "训练场", link: "/playground/", activeMatch: "/playground/" },
+      { text: "学习笔记", link: "/guide/", activeMatch: "/guide/" },
+      { text: "代码训练场", link: "/playground/", activeMatch: "/playground/" },
       { text: "术语表", link: "/glossary", activeMatch: "/glossary" },
+      { text: "兼容性", link: "/compatibility", activeMatch: "/compatibility" },
     ],
 
     sidebar: {
@@ -86,7 +83,7 @@ export default defineConfig({
         {
           text: "开始",
           items: [
-            { text: "学习路线图", link: "/guide/" },
+            { text: "学习笔记与路线", link: "/guide/" },
             { text: "00. 环境搭建", link: "/guide/00-setup" },
           ],
         },

@@ -27,7 +27,7 @@ function tokenize(text: string): string[] {
 }
 
 export function embedText(text: string): number[] {
-  const vec = new Array(DIM).fill(0);
+  const vec = Array.from<number>({ length: DIM }).fill(0);
   for (const token of tokenize(text)) {
     vec[hashToken(token)] += 1;
   }

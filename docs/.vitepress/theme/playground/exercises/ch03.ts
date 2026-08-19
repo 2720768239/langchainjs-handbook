@@ -1,11 +1,4 @@
-import {
-  AIMessage,
-  HumanMessage,
-  SystemMessage,
-  isAIMessage,
-  isHumanMessage,
-  isSystemMessage,
-} from "@langchain/core/messages";
+import { isAIMessage, isHumanMessage, isSystemMessage } from "@langchain/core/messages";
 import { FakeChatModel } from "../sandbox/fake-chat-model";
 import type { Exercise } from "../types";
 
@@ -295,10 +288,7 @@ export function buildFewShotMessages(examples: Example[], question: string): Bas
       {
         name: "示例内容与最终问题填充正确",
         run: ({ exports, expect }) => {
-          const messages = exports.buildFewShotMessages(
-            [{ input: "苹果", output: "🍎" }],
-            "香蕉",
-          );
+          const messages = exports.buildFewShotMessages([{ input: "苹果", output: "🍎" }], "香蕉");
           expect(messages, "消息数组").toHaveLength(4);
           expect(messages[1].content as string, "示例输入").toBe("苹果");
           expect(messages[2].content as string, "示例输出").toBe("🍎");
@@ -415,9 +405,7 @@ export async function extractProduct(model: ChatOpenAI, text: string) {
       log("输入:", text);
       const product = await exports.extractProduct(new FakeChatModel(), text);
       log("提取结果:", product);
-      log(
-        `类型检查: price=${typeof product.price}, inStock=${typeof product.inStock}`,
-      );
+      log(`类型检查: price=${typeof product.price}, inStock=${typeof product.inStock}`);
     },
     modelBehavior: ({ lastHuman }) => {
       if (lastHuman.includes("机械键盘")) {

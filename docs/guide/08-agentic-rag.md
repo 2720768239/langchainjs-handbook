@@ -19,7 +19,7 @@
 - **无脑开卷（传统 RAG）**：每道题都翻书——连 "2+2=?" 也翻，准确性高、能引用出处，但慢且浪费
 - **聪明开卷（Agentic RAG）**：**自己判断**什么时候需要翻书。"2+2=?" 直接答；"公司 Q3 营收多少？" 才去查文档。简单题快、复杂题全，需要时还能给出处
 
-![聪明学生类比：闭卷靠记忆，传统 RAG 逢题必翻书，Agentic RAG 智能决定](/images/08-agentic-rag-systems/smart-student-analogy.png)
+![聪明学生类比：闭卷靠记忆，传统 RAG 逢题必翻书，Agentic RAG 智能决定](/images/08-agentic-rag-systems/smart-student-analogy.webp)
 
 **RAG（Retrieval Augmented Generation，检索增强生成）** 的本质：从知识库检索相关文档，作为上下文交给 LLM，让它基于*你的数据*而非仅凭训练记忆回答。Agentic RAG 则在此之上加了一层自主决策。
 
@@ -33,7 +33,7 @@
 4. 需要来源引用？→ **RAG**
 5. 要改变模型的写作风格 / 领域语言模式？→ **微调（Fine-tuning）**——贵、慢、知识静态，多数应用用不上
 
-![RAG vs 提示工程决策树](/images/08-agentic-rag-systems/rag-vs-prompt-engineering.png)
+![RAG vs 提示工程决策树](/images/08-agentic-rag-systems/rag-vs-prompt-engineering.webp)
 
 两个典型场景对比：
 
@@ -83,7 +83,7 @@ const ragChain = await createRetrievalChain({
 | 行为 | 僵化、可预测 | 自适应、会决策 |
 | 复杂度 | 简单链 | 需要 Agent 循环 |
 
-![传统 RAG 总是检索，Agentic RAG 智能决策](/images/08-agentic-rag-systems/traditional-vs-agentic-rag.png)
+![传统 RAG 总是检索，Agentic RAG 智能决策](/images/08-agentic-rag-systems/traditional-vs-agentic-rag.webp)
 
 ::: tip 传统 RAG 并非一无是处
 如果*每个*问题都必然需要搜文档（例如「在法律数据库中检索 X 相关案例」），传统 RAG 的可预测性反而是优点。但对于混合通用知识和私有数据的场景，Agentic RAG 几乎总是更好的选择。
@@ -216,7 +216,7 @@ for (const question of questions) {
 
 运行后可以清楚看到：数学题和常识题 `Used retrieval: NO`，公司相关问题 `Used retrieval: YES`——Agent 确实在做决策，而不是机械检索。
 
-![Agentic RAG 架构：Agent 判断是否需要检索，再生成带引用的回答](/images/08-agentic-rag-systems/agentic-rag-architecture.png)
+![Agentic RAG 架构：Agent 判断是否需要检索，再生成带引用的回答](/images/08-agentic-rag-systems/agentic-rag-architecture.webp)
 
 ::: details 检索策略进阶：不止 similaritySearch
 把向量存储转成 Retriever 后可以切换搜索策略：
@@ -327,7 +327,7 @@ const agent = createAgent({
 这本质上还是第 05 章的多工具决策，只是每个工具背后都是同一个向量存储的不同切片。
 
 ::: details 企业级延伸：把 RAG 暴露成 MCP 服务
-如果多个 Agent 需要共享同一个知识库，与其在每个 Agent 里复制 RAG 逻辑，不如把知识库包装成 **MCP 服务器**（第 06 章技能回收！）：RAG 逻辑与 Agent 逻辑解耦、知识集中管理、更新知识无需重新部署 Agent。课程的 `samples/mcp-rag-server/` 提供了完整示例——一个暴露 `searchDocuments` / `addDocument` 工具的 HTTP MCP 服务器。注意生产环境务必补上认证、授权、速率限制和审计日志。
+如果多个 Agent 需要共享同一个知识库，与其在每个 Agent 里复制 RAG 逻辑，不如把知识库包装成 **MCP 服务器**（第 06 章技能回收！）：RAG 逻辑与 Agent 逻辑解耦、知识集中管理、更新知识无需重新部署 Agent。本仓库的 [`examples/mcp-rag-server/`](https://github.com/2720768239/langchainjs-handbook/tree/main/examples/mcp-rag-server) 是可运行的 HTTP MCP 示例，暴露 `search_documents` / `add_document` 工具，使用真实 `MemoryVectorStore` 和明确标注的本地哈希 Embedding。注意生产环境仍需替换持久化存储，并补上认证、授权、速率限制和审计日志。
 :::
 
 ## ⚠️ 常见坑

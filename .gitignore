@@ -1,4 +1,9 @@
 node_modules/
+.npm-cache/
+
+# Local design review artifacts
+design-demos/
+output/playwright/
 docs/.vitepress/dist/
 docs/.vitepress/cache/
 .playground-runs/

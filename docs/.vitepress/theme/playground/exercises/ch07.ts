@@ -122,10 +122,9 @@ export async function splitArticle(text: string): Promise<string[]> {
         run: async ({ exports, expect }) => {
           const chunks = await exports.splitArticle(LONG_TEXT);
           for (const chunk of chunks) {
-            expect(
-              LONG_TEXT.includes(chunk),
-              `块「${chunk.slice(0, 12)}…」是原文的子串`,
-            ).toBe(true);
+            expect(LONG_TEXT.includes(chunk), `块「${chunk.slice(0, 12)}…」是原文的子串`).toBe(
+              true,
+            );
           }
         },
       },
@@ -258,7 +257,10 @@ export async function searchDocs(
       "打分后 sort((a, b) => b.score - a.score) 降序，slice(0, k) 取前 k。",
     ],
     demo: async ({ exports, log }) => {
-      if (typeof exports.cosineSimilarity !== "function" || typeof exports.searchDocs !== "function") {
+      if (
+        typeof exports.cosineSimilarity !== "function" ||
+        typeof exports.searchDocs !== "function"
+      ) {
         log("请先实现并导出 cosineSimilarity 与 searchDocs");
         return;
       }
