@@ -72,7 +72,7 @@
     "@modelcontextprotocol/server": "^2.0.0",
     "dotenv": "^17.4.2",
     "langchain": "^1.5.9",
-    "markdown-it": "^14.1.0",
+    "markdown-it": "^15.0.0",
     "mathjs": "^15.2.0",
     "sucrase": "^3.35.0",
     "zod": "^4.4.3"
